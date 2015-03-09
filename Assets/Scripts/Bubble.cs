@@ -52,4 +52,18 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler{
 		img.sprite = sprite;
 		rectTransform.sizeDelta = new Vector2 (size, size);
 	}
+
+	public void HideBubble ()
+	{
+		Color c = img.color;
+		c.a = 0.5f;
+		img.color = c;
+	}
+
+	public void RealeaseBubble()
+	{
+		Color c = img.color;
+		c.a = 1f;
+		img.color = c;
+	}
 }

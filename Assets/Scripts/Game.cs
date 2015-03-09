@@ -9,6 +9,7 @@ public class Game : MonoBehaviour {
 	public int TableSize;
 	public int ScoresPerBubble;
 	public float BubblePadding;
+	public GameObject cellPrefab;
 	public RectTransform Table;
 	public Text scoresView;
 	public Animator curtainAnimator;
@@ -29,6 +30,7 @@ public class Game : MonoBehaviour {
 	private int bubblesInAction = 0;
 	private int scores = 0;
 
+	private Cell[,] cells;
 	private Bubble[,] bubbles;
 	private Bubble firstBubble;
 	private Bubble secondBubble;
@@ -48,11 +50,13 @@ public class Game : MonoBehaviour {
 	void Start () 
 	{
 		gameState = GameState.free;
+		cells = new Cell[TableSize, TableSize];
 		bubbles = new Bubble[TableSize,TableSize];
 		BubblePool.Get ().Initialize (TableSize);
 		ParticlesPool.Get ().Initialize (20);
 		calculateBubblesValues ();
-		fillTable ();
+		fillTableCells ();
+		fillTableBubbles ();
 		showScores ();
 	}
 
@@ -67,6 +71,7 @@ public class Game : MonoBehaviour {
 						return;
 		firstBubble = bubble;
 		gameState = GameState.bubblePressed;
+		hideDifferentBubbles (bubble);
 	}
 
 	public void BubblePointerEnter(Bubble bubble)
@@ -98,11 +103,24 @@ public class Game : MonoBehaviour {
 		gameState = GameState.free;
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 0; j < TableSize; j++)
+			{
+				if(bubbles[i,j] == null) continue;
 				BubblePool.Get().Push(bubbles[i,j].gameObject);
+			}
 
 		bubbles = new Bubble[TableSize,TableSize];
-		fillTable ();
+		fillTableBubbles ();
 		curtainAnimator.Play ("curtain_open", 0, 0f);
+	}
+
+	void hideDifferentBubbles (Bubble bubble)
+	{
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize; j++)
+		{
+			if(bubbles[i,j] != null && bubbles[i,j].type != bubble.type)
+				bubbles[i,j].HideBubble();
+		}
 	}
 
 	void showScores()
@@ -193,37 +211,102 @@ public class Game : MonoBehaviour {
 		ParticlesPool.Get ().Push (particle);
 		yield return null;
 	}
-	void dropBalls ()
+	void dropBalls (bool withSlip = false)
 	{
+		bool isMoved = false;
+		Debug.Log ("withSLip = " + withSlip);
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 1; j < TableSize; j++)
 		{
 			int indx = j;
-			while(indx >= 1 &&bubbles[i,indx-1] == null)
+			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty)
 			{
 				indx--;
 			}
 			indx =(int) Mathf.Max(0f,(float)indx);
-			if(indx != j && bubbles[i,j] != null)
+			if((indx != j || withSlip) && bubbles[i,j] != null)
 			{
-				//tyt vozmojno nado zdelat' rekyrsiu
 				Bubble tmp  = bubbles[i,j];
 				bubbles[i,j] = null;
-				bubbles[i,indx] = tmp;
-				tmp.posY = indx;
 				bubblesInAction++;
-				StartCoroutine(moveBubble(tmp,j-indx));
+
+				int tmpX = i;
+				int tmpY = indx;
+				List<KeyValuePair<int,Vector2>> positions = new List<KeyValuePair<int,Vector2>>();
+				if(indx!= j)
+					positions.Add(new KeyValuePair<int, Vector2>(j - indx, new Vector2((float) i,(float) indx)));
+				if(withSlip)
+				{
+					while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty)
+					{
+						tmpX = tmpX-1;
+						tmpY = tmpY-1;
+						positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+					}
+					if(positions.Count < 2)
+						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty)
+						{
+							tmpX = tmpX+1;
+							tmpY = tmpY-1;
+							positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+						}
+				}
+				bubbles[tmpX,tmpY] = tmp;
+				tmp.posX = tmpX;
+				tmp.posY = tmpY;
+				StartCoroutine(moveBubble(tmp,positions,!withSlip));
+				if(positions.Count>0) isMoved = true;
 			}
 		}
+		if (isMoved && withSlip)
+			dropBalls (true);
+		else
 		if(bubblesInAction == 0 )
-			dropNewBalls();
+		{
+			if(withSlip)
+				dropNewBalls();
+			else
+				dropBalls(true);
+		}
+	}
+
+
+
+	IEnumerator moveBubble (Bubble bubble,List<KeyValuePair<int,Vector2>> positions,bool repeatBubbleDrop)
+	{
+		yield return new WaitForEndOfFrame ();
+		for(int i = 0; i < positions.Count; i++)
+		{
+			int steps = positions [i].Key;
+			Vector3 startPos = bubble.transform.localPosition;
+			Vector3 endPos =new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+			float cof = 0;
+			while(cof < 1f)
+			{
+				cof += Time.deltaTime*speed/(float)steps;
+				cof = Mathf.Min(cof,1f);
+				bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
+				yield return new WaitForEndOfFrame();
+			}
+			yield return new WaitForEndOfFrame();
+		}
+		bubblesInAction --;
+		if(bubblesInAction == 0)
+		{
+			if(!repeatBubbleDrop)
+				checkAllTable();
+			else
+				dropBalls(true);
+		}
+			
+		yield return null;
 	}
 
 	IEnumerator moveBubble (Bubble bubble,int steps)
 	{
 		yield return new WaitForEndOfFrame ();
 		Vector3 startPos = bubble.transform.localPosition;
-		Vector3 endPos = new Vector3(startPos.x,(float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+		Vector3 endPos = new Vector3((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
 		float cof = 0;
 		while(cof < 1f)
 		{
@@ -269,7 +352,7 @@ public class Game : MonoBehaviour {
 					preValue = i;
 					steps = 0;
 				}
-				if(bubbles[i,j] == null)
+				if(bubbles[i,j] == null && collumIsFree(i,j))
 				{
 					steps ++;
 					Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
@@ -277,7 +360,7 @@ public class Game : MonoBehaviour {
 					bubble.posX = i;
 					bubble.posY = j;
 					bubblesInAction++;
-					bubble.transform.parent = Table.transform;
+					bubble.transform.SetParent(Table.transform);
 					bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
 					bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
 					                                              (float)(TableSize+steps) * bubbleSize + ((float)(TableSize+steps) * BubblePadding)-bubblesOffset, 0f);
@@ -289,6 +372,15 @@ public class Game : MonoBehaviour {
 		{
 			gameState = GameState.free;
 		}
+	}
+
+	bool collumIsFree (int coll , int row)
+	{
+		for(int i = row; i < TableSize; i++)
+		{
+			if(cells[coll,i].cellType != Cell.Type.empty) return false;
+		}
+		return true;
 	}
 
 	void removeDublicate (ref List<Bubble> list)
@@ -303,12 +395,31 @@ public class Game : MonoBehaviour {
 			}
 		}
 	}
+
+	void fillTableCells ()
+	{
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize;j++)
+		{
+			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Cell cell = obj.GetComponent<Cell>(); 
+			cell.posX = i;
+			cell.posY = j;
+			cells[i,j] = cell;
+			insertCellTable(cell);
+			if((i == 2 || i ==1 || i ==3) && j == 2)
+				cell.SetType(Cell.Type.groundBlock,bubbleSize);
+			else
+				cell.SetType(Cell.Type.empty,bubbleSize);
+		}
+	}
 		
-	void fillTable ()
+	void fillTableBubbles ()
 	{
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 0; j < TableSize;j++)
 			{
+				if(cells[i,j].cellType != Cell.Type.empty) continue;
 				GameObject obj = BubblePool.Get().Pull();
 				Bubble bubble = obj.GetComponent<Bubble>(); 
 				bubble.posX = i;
@@ -472,9 +583,17 @@ public class Game : MonoBehaviour {
 		return res;
 	}
 
+	void insertCellTable(Cell cell)
+	{
+		cell.transform.SetParent(Table.transform);
+		cell.rectTransform.localScale = new Vector3 (1f, 1f, 1f);
+		cell.transform.localPosition = new Vector3 ((float)cell.posX * bubbleSize + ((float)(cell.posX) * BubblePadding)-bubblesOffset, 
+		                                              (float)cell.posY * bubbleSize + ((float)(cell.posY) * BubblePadding)-bubblesOffset, 0f);
+	}
+
 	void insertBubbleInTable (Bubble bubble)
 	{
-		bubble.transform.parent = Table.transform;
+		bubble.transform.SetParent(Table.transform);
 		bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
 		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
