@@ -32,6 +32,7 @@ public class Game : MonoBehaviour {
 
 	private Cell[,] cells;
 	private Bubble[,] bubbles;
+	private List<Bubble> matchBubbles =  new List<Bubble>();
 	private Bubble firstBubble;
 	private Bubble secondBubble;
 	private static Game instance;
@@ -69,7 +70,8 @@ public class Game : MonoBehaviour {
 	{
 		if (gameState != GameState.free)
 						return;
-		firstBubble = bubble;
+		matchBubbles.Add (bubble);
+		bubble.SetChosed ();
 		gameState = GameState.bubblePressed;
 		hideDifferentBubbles (bubble);
 	}
@@ -77,17 +79,35 @@ public class Game : MonoBehaviour {
 	public void BubblePointerEnter(Bubble bubble)
 	{
 		if (gameState != GameState.bubblePressed)
-						return;
-		if((Mathf.Abs(firstBubble.posX - bubble.posX) == 1 && firstBubble.posY - bubble.posY == 0) ||
-		   (Mathf.Abs(firstBubble.posY - bubble.posY) == 1 && firstBubble.posX - bubble.posX == 0))
-		{
+			return;
+		if (matchBubbles.Count == 0 || bubble.type != matchBubbles [0].type)
+			return;
 
-			gameState = GameState.InAction;
-			secondBubble = bubble;
-			swapBubbles();
+		bool exist = matchBubbles.Exists (e => e == bubble);
+		if(exist && matchBubbles.IndexOf(bubble) == matchBubbles.Count-2)
+		{
+			int id = matchBubbles.Count-1;
+			matchBubbles[id].SetNotChosed();
+			matchBubbles.Remove(matchBubbles[id]);
+			return;
 		}
-		else
-			gameState =  GameState.free;
+
+		int indx = matchBubbles.Count - 1;
+		if (!exist && Mathf.Abs (matchBubbles[indx].posX - bubble.posX) <= 1 && Mathf.Abs (matchBubbles[indx].posY - bubble.posY) <= 1)
+			{
+				matchBubbles.Add(bubble);
+				bubble.SetChosed();
+			}
+	}
+
+	public void BubblePointerUp (Bubble bubble)
+	{
+		if (matchBubbles.Count >= 3) {
+			destroyFoundBubbles (matchBubbles);
+		} else
+			gameState = GameState.free;
+		showAllBubbles();
+		matchBubbles.RemoveRange(0, matchBubbles.Count);
 	}
 
 	public void OnReloadClick()
@@ -123,66 +143,19 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	void showScores()
+	void showAllBubbles ()
 	{
-		scoresView.text = "Scores: " + scores.ToString ();
-	}
-	void swapBubbles ()
-	{
-		List<Bubble> list = new List<Bubble> ();
-		bubbles [firstBubble.posX, firstBubble.posY] = secondBubble;
-		bubbles [secondBubble.posX, secondBubble.posY] = firstBubble;
-		bool a = checkAllDirections (firstBubble.posX, firstBubble.posY,ref list);
-		bool b = checkAllDirections (secondBubble.posX, secondBubble.posY,ref list);
-		if(a || b)
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize; j++)
 		{
-			int tmpX = firstBubble.posX;
-			int tmpY = firstBubble.posY;
-			firstBubble.posX = secondBubble.posX;
-			firstBubble.posY = secondBubble.posY;
-			secondBubble.posX = tmpX;
-			secondBubble.posY = tmpY;
-			StartCoroutine(swapBubblesAnim(false,list));
-		}
-		else
-		{
-			bubbles [firstBubble.posX, firstBubble.posY] = firstBubble;
-			bubbles [secondBubble.posX, secondBubble.posY] = secondBubble;
-			StartCoroutine(swapBubblesAnim(true));
+			if(bubbles[i,j] != null)
+				bubbles[i,j].RealeaseBubble();
 		}
 	}
 
-	IEnumerator swapBubblesAnim(bool reverse, List<Bubble> list = null)
+	void showScores()
 	{
-		yield return new WaitForEndOfFrame();
-		float cof = 0f;
-		Vector3 firstPos = firstBubble.transform.position;
-		Vector3 secondPos = secondBubble.transform.position;
-		while(cof < 1f)
-		{
-			cof += Time.deltaTime*speed;
-			cof = Mathf.Min(cof,1f);
-			firstBubble.transform.position = Vector3.Lerp(firstPos,secondPos,cof);
-			secondBubble.transform.position = Vector3.Lerp(secondPos,firstPos,cof);
-			yield return new WaitForEndOfFrame();
-		}
-		if(reverse)
-		{
-			while(cof > 0f)
-			{
-				cof -= Time.deltaTime*speed;
-				cof = Mathf.Max(cof,0f);
-				firstBubble.transform.position = Vector3.Lerp(firstPos,secondPos,cof);
-				secondBubble.transform.position = Vector3.Lerp(secondPos,firstPos,cof);
-				yield return new WaitForEndOfFrame();
-			}
-			gameState = GameState.free;
-		}
-		else
-		{
-			destroyFoundBubbles(list);
-		}
-		yield return null;
+		scoresView.text = "Scores: " + scores.ToString ();
 	}
 
 	void destroyFoundBubbles (List<Bubble> list)
@@ -214,7 +187,6 @@ public class Game : MonoBehaviour {
 	void dropBalls (bool withSlip = false)
 	{
 		bool isMoved = false;
-		Debug.Log ("withSLip = " + withSlip);
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 1; j < TableSize; j++)
 		{
@@ -330,11 +302,12 @@ public class Game : MonoBehaviour {
 			checkMatch(i,j,0,1,ref list);
 			checkMatch(i,j,1,0,ref list);
 		}
-		if(list.Count>0)
-		{
-			destroyFoundBubbles(list);
-		}
-		else
+		//TODO: ydalit' elsi ann4ytsya gorbywki
+//		if(list.Count>0)
+//		{
+//			destroyFoundBubbles(list);
+//		}
+//		else
 			dropNewBalls();
 	}
 

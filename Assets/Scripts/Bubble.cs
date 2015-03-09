@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
-public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler{
+public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
 	public enum Type
@@ -33,6 +33,11 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler{
 		rectTransform = GetComponent<RectTransform> ();
 	}
 
+	public void OnPointerUp (PointerEventData eventData)
+	{
+		Game.Get ().BubblePointerUp (this);
+	}
+
 	public void OnPointerDown (PointerEventData eventData)
 	{
 		Game.Get ().BubblePress (this);
@@ -51,6 +56,8 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler{
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
 		rectTransform.sizeDelta = new Vector2 (size, size);
+		RealeaseBubble ();
+		SetNotChosed ();
 	}
 
 	public void HideBubble ()
@@ -66,4 +73,19 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler{
 		c.a = 1f;
 		img.color = c;
 	}
+
+	public void SetChosed ()
+	{
+		Color c = img.color;
+		c.a = 0.8f;
+		img.color = c;
+	}
+
+	public void SetNotChosed()
+	{
+		Color c = img.color;
+		c.a = 1f;
+		img.color = c;
+	}
+
 }
