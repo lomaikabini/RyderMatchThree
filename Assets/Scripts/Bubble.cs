@@ -26,7 +26,7 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 	Image img;
 	[HideInInspector]
 	public RectTransform rectTransform;
-
+	public bool isRun = false;
 	void Awake () 
 	{
 		img = GetComponent<Image> ();

@@ -69,7 +69,7 @@ public class Game : MonoBehaviour {
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
 		fillTableCells ();
-		fillTableSeparators ();
+		//fillTableSeparators ();
 		fillTableBubbles ();
 		showScores ();
 	}
@@ -95,6 +95,19 @@ public class Game : MonoBehaviour {
 			return;
 		if (matchBubbles.Count == 0 || bubble.type != matchBubbles [0].type)
 			return;
+		if(matchBubbles[matchBubbles.Count-1].posY == bubble.posY)
+		{
+			int lowX = Mathf.Min(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
+			if(separators[lowX,bubble.posY] != null && separators[lowX,bubble.posY].type == Separator.Type.vertical)
+				return;
+		}
+		if(matchBubbles[matchBubbles.Count-1].posX == bubble.posX)
+		{
+			int maxY = Mathf.Max(matchBubbles[matchBubbles.Count-1].posY, bubble.posY);
+			if(separators[bubble.posX, maxY] != null && separators[bubble.posX, maxY].type == Separator.Type.horizontal)
+				return;
+		}
+
 
 		bool exist = matchBubbles.Exists (e => e == bubble);
 		if(exist && matchBubbles.IndexOf(bubble) == matchBubbles.Count-2)
@@ -102,8 +115,11 @@ public class Game : MonoBehaviour {
 			int id = matchBubbles.Count-1;
 			matchBubbles[id].SetNotChosed();
 			matchBubbles.Remove(matchBubbles[id]);
-			JointsPool.Get().Push(joints[joints.Count - 1]);
-			joints.RemoveAt(joints.Count -1);
+			if(joints.Count > 0)
+			{
+				JointsPool.Get().Push(joints[joints.Count - 1]);
+				joints.RemoveAt(joints.Count -1);
+			}
 			return;
 		}
 
@@ -253,7 +269,7 @@ public class Game : MonoBehaviour {
 			for(int j = 1; j < TableSize; j++)
 		{
 			int indx = j;
-			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty)
+			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty && (separators[i,indx] == null || separators[i,indx].type == Separator.Type.vertical))
 			{
 				indx--;
 			}
@@ -262,7 +278,6 @@ public class Game : MonoBehaviour {
 			{
 				Bubble tmp  = bubbles[i,j];
 				bubbles[i,j] = null;
-				bubblesInAction++;
 
 				int tmpX = i;
 				int tmpY = indx;
@@ -288,7 +303,11 @@ public class Game : MonoBehaviour {
 				bubbles[tmpX,tmpY] = tmp;
 				tmp.posX = tmpX;
 				tmp.posY = tmpY;
-				StartCoroutine(moveBubble(tmp,positions,!withSlip));
+				if(positions.Count >0)
+				{
+					bubblesInAction++;
+					StartCoroutine(moveBubble(tmp,positions,!withSlip));
+				}
 				if(positions.Count>0) isMoved = true;
 			}
 		}
@@ -313,7 +332,7 @@ public class Game : MonoBehaviour {
 		{
 			int steps = positions [i].Key;
 			Vector3 startPos = bubble.transform.localPosition;
-			Vector3 endPos =new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+			Vector3 endPos = new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
 			float cof = 0;
 			while(cof < 1f)
 			{
@@ -334,6 +353,20 @@ public class Game : MonoBehaviour {
 		}
 			
 		yield return null;
+	}
+
+	void SetClearPositions ()
+	{
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize;j++)
+		{
+			Bubble bubble = bubbles[i,j];
+			if(bubble != null)
+			{
+				Vector3 endPos = new Vector3((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+				bubble.transform.localPosition = endPos;
+			}
+		}
 	}
 
 	IEnumerator moveBubble (Bubble bubble,int steps)
@@ -370,7 +403,7 @@ public class Game : MonoBehaviour {
 //			destroyFoundBubbles(list);
 //		}
 //		else
-			dropNewBalls();
+		dropNewBalls();
 	}
 
 	void dropNewBalls ()
@@ -409,6 +442,7 @@ public class Game : MonoBehaviour {
 		for(int i = row; i < TableSize; i++)
 		{
 			if(cells[coll,i].cellType != Cell.Type.empty) return false;
+			if(separators[coll,i] != null && separators[coll,i].type == Separator.Type.horizontal) return false;
 		}
 		return true;
 	}
@@ -469,7 +503,7 @@ public class Game : MonoBehaviour {
 			cell.posY = j;
 			cells[i,j] = cell;
 			insertCellTable(cell);
-			if((i == 2 || i ==1 || i ==3) && j == 2)
+			if((i == 2 || i ==1 || i ==3) && j == 4)
 				cell.SetType(Cell.Type.groundBlock,bubbleSize);
 			else
 				cell.SetType(Cell.Type.empty,bubbleSize);
@@ -649,7 +683,6 @@ public class Game : MonoBehaviour {
 	{
 		separ.transform.SetParent(SeparatorContainer.transform);
 		separ.rectTransform.localScale = new Vector3 (1f, 1f, 1f);
-		Debug.Log (separ.type);
 		if(separ.type == Separator.Type.vertical)
 		{
 			separ.transform.localPosition = new Vector3 ((float)separ.posX * bubbleSize+bubbleSize/2f+BubblePadding/2f + ((float)(separ.posX) * BubblePadding)-bubblesOffset, 
