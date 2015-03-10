@@ -22,49 +22,60 @@ public class Cell : MonoBehaviour {
 	{
 		empty,
 		groundBlock,
-		block,
-		separatorDestroyLeft,
-		separatorDestroyRight,
-		separatorDestroyTop,
-		separatorDestroyDown,
-		separatorLeft,
-		separatorRight,
-		separatorTop,
-		separatorDown
+		block
+//		,
+//		separatorDestroyLeft,
+//		separatorDestroyRight,
+//		separatorDestroyTop,
+//		separatorDestroyDown,
+//		separatorLeft,
+//		separatorRight,
+//		separatorTop,
+//		separatorDown
 	}
 
 	[Serializable]
 	public struct Sprites
 	{
 		public Type type;
+		public DestroyType destroyType;
 		public Sprite[] sprites;
+
+		public enum DestroyType
+		{
+			notDestroy,
+			destroy
+		}
 	}
 	
 	int lvl;
+	Sprites kit;
 	void Awake()
 	{
 		rectTransform = GetComponent<RectTransform> ();
 	}
 
-	public void SetType (Type t,float size)
+	public void SetType (Type t,float size = -1)
 	{
 		cellType = t;
 		Sprite sp;
-		try
-		{
-			Sprites kit = SpritesKit[(int) t];
-			lvl = kit.sprites.Length;
-			sp = SpritesKit[(int)t].sprites[0];
-		}
-		catch(Exception e)
-		{
-			Debug.LogError("Can't find sprite by cell Type! " + e);
-			return;
-		}
+		kit = SpritesKit[(int) t];
+		lvl = kit.sprites.Length;
+		sp = SpritesKit[(int)t].sprites[0];
 		img.sprite = sp;
-		rectTransform.sizeDelta = new Vector2 (size, size);
+		if(size != -1)
+			rectTransform.sizeDelta = new Vector2 (size, size);
 	}
 
+	public void GiveDamage()
+	{
+		if(kit.destroyType == Sprites.DestroyType.destroy && cellType != Type.empty)
+		{
+			lvl--;
+			if(lvl == 0)
+				SetType(Type.empty);
+		}
+	}
 
 
 }
