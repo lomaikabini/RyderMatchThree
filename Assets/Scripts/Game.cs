@@ -302,6 +302,7 @@ public class Game : MonoBehaviour {
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
+			if(separators[i,j] != null && separators[i,j].type == Separator.Type.horizontal) continue;
 			int indx = j;
 			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty && (separators[i,indx] == null || separators[i,indx].type == Separator.Type.vertical))
 			{
@@ -317,18 +318,28 @@ public class Game : MonoBehaviour {
 					positions.Add(new KeyValuePair<int, Vector2>(j - indx, new Vector2((float) tmpX,(float) tmpY)));
 				if(withSlip)
 				{
-					while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty)
+					while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
 					{
 						tmpX = tmpX-1;
 						tmpY = tmpY-1;
 						positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+						while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+						{
+							tmpY--;
+							positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+						}
 					}
-					if(positions.Count < 2)
-						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty)
+					//if(positions.Count < 2)
+						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
 						{
 							tmpX = tmpX+1;
 							tmpY = tmpY-1;
 							positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+							{
+								tmpY--;
+								positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+							}
 						}
 				}
 				if(positions.Count >0)
@@ -497,17 +508,18 @@ public class Game : MonoBehaviour {
 
 	void fillTableSeparators ()
 	{
-		for(int i = 0; i < 3;i++)
+		for(int i = 0; i < TableSize;i++)
 		{
+			if(i == 2) continue;
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = i+i;
+			separ.posX = i;
 			separ.posY = 2;
 			separators[separ.posX,separ.posY] = separ;
-			if(i == 0)
-				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,i+1);
-			else
-				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,i+1);
+//			if(i == 0)
+//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
+//			else
+			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
 			insertSeparatorTable(separ);
 		}
 
@@ -584,8 +596,9 @@ public class Game : MonoBehaviour {
 	void fillTableBubbles ()
 	{
 		for(int i = 0; i < TableSize; i++)
-			for(int j = 0; j < TableSize;j++)
+			for(int j = 2; j < TableSize;j++)
 			{
+			if(i == 2 && j ==2) continue;
 				if(cells[i,j].cellType != Cell.Type.empty) continue;
 				GameObject obj = BubblePool.Get().Pull();
 				Bubble bubble = obj.GetComponent<Bubble>(); 
