@@ -59,12 +59,21 @@ public class Cell : MonoBehaviour {
 	{
 		cellType = t;
 		Sprite sp;
-		kit = SpritesKit[(int) t];
+		kit = getKitByType (t);//SpritesKit[(int) t];
 		lvl = kit.sprites.Length;
-		sp = SpritesKit[(int)t].sprites[0];
+		sp = kit.sprites[0];
 		img.sprite = sp;
 		if(size != -1)
 			rectTransform.sizeDelta = new Vector2 (size, size);
+	}
+
+	Sprites getKitByType (Type t)
+	{
+		for(int i = 0; i < SpritesKit.Length; i++)
+		{
+			if(SpritesKit[i].type == t) return SpritesKit[i];
+		}
+		return default(Sprites);
 	}
 
 	public void GiveDamage()

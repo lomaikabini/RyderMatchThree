@@ -68,6 +68,7 @@ public class Game : MonoBehaviour {
 		BubblePool.Get ().Initialize (TableSize);
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
+		fillEnvironment ();
 		fillTableCells ();
 		fillTableSeparators ();
 		fillTableBubbles ();
@@ -424,13 +425,13 @@ public class Game : MonoBehaviour {
 
 	void checkAllTable ()
 	{
-		List<Bubble> list = new List<Bubble> ();
-		for(int i = 0; i < TableSize; i++)
-			for(int j = 0; j < TableSize;j++)
-		{
-			checkMatch(i,j,0,1,ref list);
-			checkMatch(i,j,1,0,ref list);
-		}
+//		List<Bubble> list = new List<Bubble> ();
+//		for(int i = 0; i < TableSize; i++)
+//			for(int j = 0; j < TableSize;j++)
+//		{
+//			checkMatch(i,j,0,1,ref list);
+//			checkMatch(i,j,1,0,ref list);
+//		}
 		//TODO: ydalit' elsi ann4ytsya gorbywki
 //		if(list.Count>0)
 //		{
@@ -526,6 +527,42 @@ public class Game : MonoBehaviour {
 
 	}
 
+	void fillEnvironment ()
+	{
+		for(int i = -3; i < 0; i++)
+			for(int j = 0; j < TableSize;j++)
+		{
+			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Cell cell = obj.GetComponent<Cell>(); 
+			cell.posX = i;
+			cell.posY = j;
+			insertCellTable(cell);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+		}
+
+		for(int i = TableSize; i < TableSize+3; i++)
+			for(int j = 0; j < TableSize;j++)
+		{
+			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Cell cell = obj.GetComponent<Cell>(); 
+			cell.posX = i;
+			cell.posY = j;
+			insertCellTable(cell);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+		}
+		for(int i = -3; i < TableSize+3; i++)
+			for(int j = -2; j < 0;j++)
+		{
+			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Cell cell = obj.GetComponent<Cell>(); 
+			cell.posX = i;
+			cell.posY = j;
+			insertCellTable(cell);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+		}
+	}
+
+
 	void fillTableCells ()
 	{
 		for(int i = 0; i < TableSize; i++)
@@ -537,7 +574,7 @@ public class Game : MonoBehaviour {
 			cell.posY = j;
 			cells[i,j] = cell;
 			insertCellTable(cell);
-			if((i == 2 || i ==1 || i ==3) && j == 4)
+			if((i == 2 || i ==1 || i ==3) && j == 3)
 				cell.SetType(Cell.Type.groundBlock,bubbleSize);
 			else
 				cell.SetType(Cell.Type.empty,bubbleSize);
