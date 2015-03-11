@@ -388,8 +388,9 @@ public class Game : MonoBehaviour {
 			bubblesInAction++;
 			StartCoroutine(moveBubble(moveBubbles[i],moveBubbles[i].whereMove,false));
 		}
-		if(bubblesInAction ==0 )
-			checkAllTable();
+		dropNewBalls ();
+//		if(bubblesInAction ==0 )
+//			checkAllTable();
 	}
 
 
@@ -488,7 +489,7 @@ public class Game : MonoBehaviour {
 		int[] repeats = new int[TableSize];
 		for(int k =0; k < repeats.Length;k++)
 		{
-			repeats[k] = 1;
+			repeats[k] = 0;
 		}
 		List<KeyValuePair<Bubble,int>> newBubbles = new List<KeyValuePair<Bubble,int>> (); 
 		for(int j = 0; j < TableSize; j++)
