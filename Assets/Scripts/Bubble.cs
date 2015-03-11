@@ -28,7 +28,6 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 	public RectTransform rectTransform;
 	public bool isRun = false;
 
-	public List<KeyValuePair<float,float>> test = new List<KeyValuePair<float,float>>();
 	void Awake () 
 	{
 		img = GetComponent<Image> ();
