@@ -27,7 +27,7 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 	[HideInInspector]
 	public RectTransform rectTransform;
 	public bool isRun = false;
-
+	public List<KeyValuePair<float,Vector2>> whereMove =  new List<KeyValuePair<float,Vector2>>();
 	void Awake () 
 	{
 		img = GetComponent<Image> ();
@@ -59,6 +59,15 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 		rectTransform.sizeDelta = new Vector2 (size, size);
 		RealeaseBubble ();
 		SetNotChosed ();
+	}
+
+	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
+	{
+		int count = list.Count;
+		for(int i = 0; i < count; i++)
+		{
+			whereMove.Add(list[i]);
+		}
 	}
 
 	public void HideBubble ()

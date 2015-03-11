@@ -30,7 +30,7 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speed = 8f;
+	private float speed = 7f;
 	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;
@@ -72,7 +72,7 @@ public class Game : MonoBehaviour {
 		calculateBubblesValues ();
 		fillEnvironment ();
 		fillTableCells ();
-		//fillTableSeparators ();
+		fillTableSeparators ();
 		//fillTableBubbles ();
 		gameState = GameState.InAction;
 		dropNewBalls ();
@@ -354,8 +354,10 @@ public class Game : MonoBehaviour {
 					bubbles[tmpX,tmpY] = tmp;
 					tmp.posX = tmpX;
 					tmp.posY = tmpY;
-					bubblesInAction++;
-					StartCoroutine(moveBubble(tmp,positions,!withSlip));
+					tmp.addMovePoints(positions);
+					moveBubbles.Add(tmp);
+//					bubblesInAction++;
+//					StartCoroutine(moveBubble(tmp,positions,!withSlip));
 				}
 				if(positions.Count>0) isMoved = true;
 			}
@@ -363,15 +365,32 @@ public class Game : MonoBehaviour {
 //		if (isMoved && withSlip)
 //			dropBalls (true);
 //		else
-		if(bubblesInAction == 0 )
+		if (!withSlip)
+			dropBalls (true);
+		else
 		{
-			if(withSlip)
-				dropNewBalls();
-			else
-				dropBalls(true);
+			moveAllBubbles();
 		}
+//		if(bubblesInAction == 0 )
+//		{
+//			if(withSlip)
+//				dropNewBalls();
+//			else
+//				dropBalls(true);
+//		}
 	}
 
+	void moveAllBubbles ()
+	{
+		int count = moveBubbles.Count;
+		for(int i = 0; i < count; i++)
+		{
+			bubblesInAction++;
+			StartCoroutine(moveBubble(moveBubbles[i],moveBubbles[i].whereMove,false));
+		}
+		if(bubblesInAction ==0 )
+			checkAllTable();
+	}
 
 
 	IEnumerator moveBubble (Bubble bubble,List<KeyValuePair<float,Vector2>> positions,bool repeatBubbleDrop)
@@ -381,7 +400,7 @@ public class Game : MonoBehaviour {
 		{
 			float steps = positions [i].Key;
 			Vector3 startPos = bubble.transform.localPosition;
-			Vector3 endPos = new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+			Vector3 endPos = new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(positions[i].Value.x) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(positions[i].Value.y) * BubblePadding)-bubblesOffset, 0f);
 			float cof = 0;
 			while(cof < 1f)
 			{
@@ -396,7 +415,15 @@ public class Game : MonoBehaviour {
 		if(bubblesInAction == 0)
 		{
 			if(!repeatBubbleDrop)
+			{
+				int count = moveBubbles.Count;
+				for(int i = 0; i < count; i++)
+				{
+					moveBubbles[i].whereMove.RemoveRange(0,moveBubbles[i].whereMove.Count);
+				}
+				moveBubbles.RemoveRange (0, moveBubbles.Count);
 				checkAllTable();
+			}
 			else
 				dropBalls(true);
 		}
@@ -470,7 +497,7 @@ public class Game : MonoBehaviour {
 			for(int i = 0; i < TableSize;i++)
 			{
 				steps = j;
-				if((bubbles[i,j] == null) && collumIsFree(i,j))
+				if((bubbles[i,j] == null) && collumIsFreeByCell(i,j) && collumIsFreeBySeparator(i,j+1)/*collumIsFree(i,j)*/)
 				{
 					startView:
 					steps ++;
@@ -511,7 +538,7 @@ public class Game : MonoBehaviour {
 						bubble.transform.SetParent(BubbleContainer.transform);
 						bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
 						bubble.transform.localPosition = new Vector3 ((float)(i) * bubbleSize + ((float)(i) * BubblePadding)-bubblesOffset, 
-						                                              (float)(TableSize/*+steps*/+repeats[i]) * bubbleSize + ((float)(TableSize+steps) * BubblePadding)-bubblesOffset, 0f);
+						                                              (float)(TableSize+repeats[i]) * bubbleSize + ((float)(TableSize+repeats[i]) * BubblePadding)-bubblesOffset, 0f);
 						bubbles[tmpX,tmpY] = bubble;
 						bubble.posX = tmpX;
 						bubble.posY = tmpY;
@@ -533,13 +560,37 @@ public class Game : MonoBehaviour {
 		}
 	}
 
+	bool collumIsFreeByCell(int coll , int row)
+	{
+		
+		for(int i = row; i < TableSize; i++)
+		{
+			if(cells[coll,i].cellType != Cell.Type.empty) return false;
+		}
+		
+		return true;
+	}
+
+	bool collumIsFreeBySeparator (int coll , int row)
+	{
+		row = Mathf.Max (0, row);
+		for(int i = row; i < TableSize; i++)
+		{
+			if(separators[coll,i] != null && separators[coll,i].type == Separator.Type.horizontal) return false;
+		}
+		
+		return true;
+	}
+
 	bool collumIsFree (int coll , int row)
 	{
+	
 		for(int i = row; i < TableSize; i++)
 		{
 			if(cells[coll,i].cellType != Cell.Type.empty) return false;
 			if(separators[coll,i] != null && separators[coll,i].type == Separator.Type.horizontal) return false;
 		}
+
 		return true;
 	}
 
