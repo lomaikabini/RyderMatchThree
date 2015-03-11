@@ -55,6 +55,20 @@ public class Separator : MonoBehaviour {
 			rectTransform.sizeDelta = new Vector2 (rectTransform.sizeDelta.x, size);
 	}
 
+	public bool GiveDamage ()
+	{
+		if(kit.destroyType == DestroyType.destroy)
+		{
+			lives --;
+			if(lives == 0)
+			{
+				return true;
+			}
+			img.sprite = kit.sprites [kit.sprites.Length - lives];
+		}
+		return false;
+	}
+
 	Sprites GetKitByType (DestroyType dt)
 	{
 		for(int i = 0; i < sprites.Length; i++)

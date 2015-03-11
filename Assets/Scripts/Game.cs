@@ -30,7 +30,7 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speed = 5f;
+	private float speed = 7f;
 	private float bubbleSize;
 	private float bubblesOffset;
 
@@ -69,7 +69,7 @@ public class Game : MonoBehaviour {
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
 		fillTableCells ();
-		//fillTableSeparators ();
+		fillTableSeparators ();
 		fillTableBubbles ();
 		showScores ();
 	}
@@ -225,9 +225,11 @@ public class Game : MonoBehaviour {
 	{
 		removeDublicate (ref list);
 		explositionNearBlocks (list);
+		explositionNearSeparators (list);
 		for(int i = 0;i < list.Count; i++)
 		{
 			Bubble bubble = bubbles[list[i].posX,list[i].posY];
+			bubble.test.RemoveRange(0,bubble.test.Count);
 			bubbles[list[i].posX,list[i].posY] = null;
 			Vector3 pos  = bubble.transform.localPosition;
 			BubblePool.Get().Push(bubble.gameObject);
@@ -236,6 +238,37 @@ public class Game : MonoBehaviour {
 		showScores ();
 		dropBalls ();
 	}
+
+	void explositionNearSeparators (List<Bubble> list)
+	{
+		List<Separator> usedSeparators = new List<Separator> ();
+		for (int i = 0; i < list.Count; i++) 
+		{
+			Bubble b = list [i];
+			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.horizontal);
+			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.vertical);
+
+			if(b.posY + 1 < TableSize)
+				giveDamageForSeparator(ref usedSeparators,b.posX,b.posY + 1,Separator.Type.horizontal);
+			if(b.posX - 1 >= 0)
+				giveDamageForSeparator(ref usedSeparators,b.posX - 1,b.posY,Separator.Type.vertical);
+		}
+	}
+
+	void giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type)
+	{
+		Separator separ = separators[x,y];
+		if(!usedSeparators.Exists (e => e == separ) && separ !=null && separ.type == type)
+		{
+			usedSeparators.Add(separ);
+			if(separ.GiveDamage())
+			{
+				Destroy(separators[x,y].gameObject);
+				separators[x,y] = null;
+			}
+		}
+	}
+
 	void explositionNearBlocks(List<Bubble> list)
 	{
 		List<Cell> usedCells = new List<Cell> ();
@@ -243,17 +276,17 @@ public class Game : MonoBehaviour {
 		{
 			Bubble b = list[i];
 			if(b.posY + 1 < TableSize)
-				GiveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
+				giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
 			if(b.posY - 1 >= 0)
-				GiveDamageForCell(ref usedCells,cells[b.posX,b.posY - 1]);
+				giveDamageForCell(ref usedCells,cells[b.posX,b.posY - 1]);
 			if(b.posX + 1 < TableSize)
-				GiveDamageForCell(ref usedCells,cells[b.posX + 1,b.posY]);
+				giveDamageForCell(ref usedCells,cells[b.posX + 1,b.posY]);
 			if(b.posX - 1 >= 0)
-				GiveDamageForCell(ref usedCells,cells[b.posX - 1,b.posY]);
+				giveDamageForCell(ref usedCells,cells[b.posX - 1,b.posY]);
 		}
 	}
 
-	void GiveDamageForCell(ref List<Cell> usedCells, Cell c)
+	void giveDamageForCell(ref List<Cell> usedCells, Cell c)
 	{
 		if(!usedCells.Exists (e => e == c))
 		{
@@ -265,8 +298,8 @@ public class Game : MonoBehaviour {
 	void dropBalls (bool withSlip = false)
 	{
 		bool isMoved = false;
-		for(int i = 0; i < TableSize; i++)
-			for(int j = 1; j < TableSize; j++)
+		for(int j = 1; j < TableSize; j++)
+			for(int i = 0; i < TableSize; i++)
 		{
 			int indx = j;
 			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty && (separators[i,indx] == null || separators[i,indx].type == Separator.Type.vertical))
@@ -276,14 +309,11 @@ public class Game : MonoBehaviour {
 			indx =(int) Mathf.Max(0f,(float)indx);
 			if((indx != j || withSlip) && bubbles[i,j] != null)
 			{
-				Bubble tmp  = bubbles[i,j];
-				bubbles[i,j] = null;
-
 				int tmpX = i;
 				int tmpY = indx;
 				List<KeyValuePair<int,Vector2>> positions = new List<KeyValuePair<int,Vector2>>();
 				if(indx!= j)
-					positions.Add(new KeyValuePair<int, Vector2>(j - indx, new Vector2((float) i,(float) indx)));
+					positions.Add(new KeyValuePair<int, Vector2>(j - indx, new Vector2((float) tmpX,(float) tmpY)));
 				if(withSlip)
 				{
 					while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty)
@@ -300,20 +330,23 @@ public class Game : MonoBehaviour {
 							positions.Add(new KeyValuePair<int, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
 						}
 				}
-				bubbles[tmpX,tmpY] = tmp;
-				tmp.posX = tmpX;
-				tmp.posY = tmpY;
 				if(positions.Count >0)
 				{
+					Bubble tmp  = bubbles[i,j];
+					bubbles[i,j] = null;
+					bubbles[tmpX,tmpY] = tmp;
+					tmp.posX = tmpX;
+					tmp.posY = tmpY;
+
 					bubblesInAction++;
 					StartCoroutine(moveBubble(tmp,positions,!withSlip));
 				}
 				if(positions.Count>0) isMoved = true;
 			}
 		}
-		if (isMoved && withSlip)
-			dropBalls (true);
-		else
+//		if (isMoved && withSlip)
+//			dropBalls (true);
+//		else
 		if(bubblesInAction == 0 )
 		{
 			if(withSlip)
@@ -330,6 +363,7 @@ public class Game : MonoBehaviour {
 		yield return new WaitForEndOfFrame ();
 		for(int i = 0; i < positions.Count; i++)
 		{
+			bubble.test.Add(new KeyValuePair<float, float>(positions[i].Value.x,positions[i].Value.y));
 			int steps = positions [i].Key;
 			Vector3 startPos = bubble.transform.localPosition;
 			Vector3 endPos = new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
@@ -383,8 +417,8 @@ public class Game : MonoBehaviour {
 			yield return new WaitForEndOfFrame();
 		}
 		bubblesInAction --;
-		if(bubblesInAction == 0)
-			checkAllTable();
+		if (bubblesInAction == 0)
+			dropBalls (true);//checkAllTable();
 		yield return null;
 	}
 
@@ -466,21 +500,21 @@ public class Game : MonoBehaviour {
 		{
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = i+2;
-			separ.posY = 4;
+			separ.posX = i+i;
+			separ.posY = 2;
 			separators[separ.posX,separ.posY] = separ;
-			if(i == 1)
+			if(i == 0)
 				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,i+1);
 			else
 				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,i+1);
 			insertSeparatorTable(separ);
 		}
 
-		for(int j = 0; j < 3;j++)
+		for(int j = 0; j < 2;j++)
 		{
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = j+4;
+			separ.posX = j+3+j;
 			separ.posY = 5;
 			separators[separ.posX,separ.posY] = separ;
 			if(j==1)
@@ -710,15 +744,15 @@ public class Game : MonoBehaviour {
 		bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
 		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
-		int id = -1;
-		while(checkLineMatch(bubble.posX,0,0,1) || checkLineMatch(0, bubble.posY,1,0))
-		{
-			if(id < Enum.GetNames(typeof(Bubble.Type)).Length - 1)
-				id++;
-			else
-				id = 0;
-			bubble.SetType ((Bubble.Type)id, bubbleSize);
-		}
+//		int id = -1;
+//		while(checkLineMatch(bubble.posX,0,0,1) || checkLineMatch(0, bubble.posY,1,0))
+//		{
+//			if(id < Enum.GetNames(typeof(Bubble.Type)).Length - 1)
+//				id++;
+//			else
+//				id = 0;
+//			bubble.SetType ((Bubble.Type)id, bubbleSize);
+//		}
 	}
 
 	void calculateBubblesValues ()
