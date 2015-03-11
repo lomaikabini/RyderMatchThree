@@ -30,9 +30,10 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speed = 7f;
+	private float speed = 8f;
 	private float bubbleSize;
 	private float bubblesOffset;
+	private float slipStep;
 
 	private int bubblesInAction = 0;
 	private int scores = 0;
@@ -43,6 +44,7 @@ public class Game : MonoBehaviour {
 	private Bubble firstBubble;
 	private Bubble secondBubble;
 	private List<Bubble> matchBubbles =  new List<Bubble>();
+	private List<Bubble> moveBubbles = new List<Bubble> ();
 
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 
@@ -70,8 +72,10 @@ public class Game : MonoBehaviour {
 		calculateBubblesValues ();
 		fillEnvironment ();
 		fillTableCells ();
-		fillTableSeparators ();
-		fillTableBubbles ();
+		//fillTableSeparators ();
+		//fillTableBubbles ();
+		gameState = GameState.InAction;
+		dropNewBalls ();
 		showScores ();
 	}
 
@@ -298,7 +302,6 @@ public class Game : MonoBehaviour {
 	void dropBalls (bool withSlip = false)
 	{
 		bool isMoved = false;
-		float slipStep = Mathf.Sqrt ((bubbleSize * bubbleSize) * 2f) / bubbleSize;
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
@@ -351,7 +354,6 @@ public class Game : MonoBehaviour {
 					bubbles[tmpX,tmpY] = tmp;
 					tmp.posX = tmpX;
 					tmp.posY = tmpY;
-
 					bubblesInAction++;
 					StartCoroutine(moveBubble(tmp,positions,!withSlip));
 				}
@@ -456,25 +458,72 @@ public class Game : MonoBehaviour {
 	void dropNewBalls ()
 	{
 		int steps = 0;
-		List<KeyValuePair<Bubble,int>> newBubbles = new List<KeyValuePair<Bubble,int>> (); 
-		for(int i = 0; i < TableSize; i++)
+		int[] repeats = new int[TableSize];
+		for(int k =0; k < repeats.Length;k++)
 		{
-			steps = 0;
-			for(int j = 0; j < TableSize;j++)
+			repeats[k] = 1;
+		}
+		List<KeyValuePair<Bubble,int>> newBubbles = new List<KeyValuePair<Bubble,int>> (); 
+		for(int j = 0; j < TableSize; j++)
+		{
+
+			for(int i = 0; i < TableSize;i++)
 			{
-				if(bubbles[i,j] == null && collumIsFree(i,j))
+				steps = j;
+				if((bubbles[i,j] == null) && collumIsFree(i,j))
 				{
+					startView:
 					steps ++;
-					Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
-					bubbles[i,j] = bubble;
-					bubble.posX = i;
-					bubble.posY = j;
-					bubblesInAction++;
-					bubble.transform.SetParent(BubbleContainer.transform);
-					bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
-					bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
-					                                              (float)(TableSize+steps) * bubbleSize + ((float)(TableSize+steps) * BubblePadding)-bubblesOffset, 0f);
-					StartCoroutine(moveBubble(bubble,TableSize+steps-j));
+					int tmpX = i;
+					int tmpY = j;
+					List<KeyValuePair<float,Vector2>> positions = new List<KeyValuePair<float,Vector2>>();
+					if(bubbles[i,j] == null)
+					positions.Add(new KeyValuePair<float, Vector2>(TableSize+repeats[i]-j, new Vector2((float) tmpX,(float) tmpY)));
+						slipStart:
+						while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+							{
+								tmpX = tmpX-1;
+								tmpY = tmpY-1;
+								positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+								while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+								{
+									tmpY--;
+									positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+								}
+							}
+							
+						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+							{
+								tmpX = tmpX+1;
+								tmpY = tmpY-1;
+								positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+								while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && (separators[tmpX,tmpY] == null || separators[tmpX,tmpY].type == Separator.Type.vertical))
+								{
+									tmpY--;
+									positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+								}
+								goto slipStart;
+							}
+
+					if(positions.Count > 0)
+					{
+						Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
+						bubble.transform.SetParent(BubbleContainer.transform);
+						bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
+						bubble.transform.localPosition = new Vector3 ((float)(i) * bubbleSize + ((float)(i) * BubblePadding)-bubblesOffset, 
+						                                              (float)(TableSize/*+steps*/+repeats[i]) * bubbleSize + ((float)(TableSize+steps) * BubblePadding)-bubblesOffset, 0f);
+						bubbles[tmpX,tmpY] = bubble;
+						bubble.posX = tmpX;
+						bubble.posY = tmpY;
+						bubblesInAction++;
+						repeats[i]++;
+						StartCoroutine(moveBubble(bubble,positions,false));
+					}
+
+					if(positions.Count>1)
+					{
+						goto startView;
+					}
 				}
 			}
 		}
@@ -810,5 +859,6 @@ public class Game : MonoBehaviour {
 	{
 		bubbleSize = (BubbleContainer.rect.height - ((TableSize + 1) * BubblePadding)) / (float)TableSize;
 		bubblesOffset = (BubbleContainer.rect.height/2f) - bubbleSize/2f - BubblePadding;
+		slipStep = Mathf.Sqrt ((bubbleSize * bubbleSize) * 2f) / bubbleSize;
 	}
 }
