@@ -30,7 +30,9 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speed = 7f;
+	private float speedStart = 4f;
+	private float speedMax = 10f;
+	private float speedBoost = 10f;
 	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;
@@ -397,6 +399,7 @@ public class Game : MonoBehaviour {
 	IEnumerator moveBubble (Bubble bubble,List<KeyValuePair<float,Vector2>> positions,bool repeatBubbleDrop)
 	{
 		yield return new WaitForEndOfFrame ();
+		float speed = speedStart;
 		for(int i = 0; i < positions.Count; i++)
 		{
 			float steps = positions [i].Key;
@@ -405,6 +408,8 @@ public class Game : MonoBehaviour {
 			float cof = 0;
 			while(cof < 1f)
 			{
+				speed +=Time.deltaTime * speedBoost;
+				speed = Mathf.Min(speed, speedMax);
 				cof += Time.deltaTime*speed/(float)steps;
 				cof = Mathf.Min(cof,1f);
 				bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
@@ -455,7 +460,7 @@ public class Game : MonoBehaviour {
 		float cof = 0;
 		while(cof < 1f)
 		{
-			cof += Time.deltaTime*speed/(float)steps;
+			cof += Time.deltaTime*speedStart/(float)steps;
 			cof = Mathf.Min(cof,1f);
 			bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
 			yield return new WaitForEndOfFrame();
@@ -611,31 +616,32 @@ public class Game : MonoBehaviour {
 
 	void fillTableSeparators ()
 	{
-		for(int i = 0; i < TableSize;i++)
-		{
-			if(i == 2) continue;
-			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
-			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = i;
-			separ.posY = 2;
-			separators[separ.posX,separ.posY] = separ;
-//			if(i == 0)
-//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
-//			else
-			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
-			insertSeparatorTable(separ);
-		}
+//		for(int i = 0; i < TableSize;i++)
+//		{
+//			if(i == 2) continue;
+//			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+//			Separator separ = obj.GetComponent<Separator>(); 
+//			separ.posX = i;
+//			separ.posY = 2;
+//			separators[separ.posX,separ.posY] = separ;
+////			if(i == 0)
+////				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
+////			else
+//			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
+//			insertSeparatorTable(separ);
+//		}
 
-		for(int j = 0; j < 2;j++)
+		for(int j = 0; j < TableSize;j++)
 		{
+			if(j==3)continue;
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = j+3+j;
-			separ.posY = 5;
+			separ.posX = j;
+			separ.posY = 3;
 			separators[separ.posX,separ.posY] = separ;
-			if(j==1)
-				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
-			else
+//			if(j==1)
+//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
+//			else
 				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
 			insertSeparatorTable(separ);
 		}
@@ -689,9 +695,9 @@ public class Game : MonoBehaviour {
 			cell.posY = j;
 			cells[i,j] = cell;
 			insertCellTable(cell);
-			if((i == 2 || i ==1 || i ==3) && j == 3)
-				cell.SetType(Cell.Type.groundBlock,bubbleSize);
-			else
+//			if((i == 2 || i ==1 || i ==3) && j == 3)
+//				cell.SetType(Cell.Type.groundBlock,bubbleSize);
+//			else
 				cell.SetType(Cell.Type.empty,bubbleSize);
 		}
 	}

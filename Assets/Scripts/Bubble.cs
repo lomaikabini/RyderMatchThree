@@ -8,6 +8,7 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 
 	public List<Sprite> bubbleImages;
 	public 	Animator animator;
+	public 	Image img;
 	public enum Type
 	{
 		blue,
@@ -23,15 +24,14 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 	public int posX;
 	[HideInInspector]
 	public int posY;
-
-	Image img;
+	
 	[HideInInspector]
 	public RectTransform rectTransform;
 	public bool isRun = false;
 	public List<KeyValuePair<float,Vector2>> whereMove =  new List<KeyValuePair<float,Vector2>>();
 	void Awake () 
 	{
-		img = GetComponent<Image> ();
+		//img = GetComponent<Image> ();
 		rectTransform = GetComponent<RectTransform> ();
 	}
 
@@ -63,7 +63,7 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 	}
 	public void playMovedAnim()
 	{
-		animator.Play ("Scale", 0, 0f);
+		animator.Play ("Bounce", 0, 0f);
 	}
 	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
 	{
