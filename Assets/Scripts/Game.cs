@@ -30,9 +30,9 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speedStart = 4f;
-	private float speedMax = 15f;
-	private float speedBoost = 10f;
+	private float speedStart = 8f;
+	private float speedMax = 12f;
+	private float speedBoost = 1.5f;
 	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;
@@ -165,8 +165,12 @@ public class Game : MonoBehaviour {
 	{
 		if (matchBubbles.Count >= 3) {
 			destroyFoundBubbles (matchBubbles);
-		} else
+		} else 
+		{
 			gameState = GameState.free;
+			for(int i = 0; i < matchBubbles.Count; i++)
+				matchBubbles[i].playChosedAnim();
+		}
 		showAllBubbles();
 		removeAllJoints ();
 		matchBubbles.RemoveRange(0, matchBubbles.Count);
@@ -239,7 +243,6 @@ public class Game : MonoBehaviour {
 		{
 			Bubble bubble = bubbles[list[i].posX,list[i].posY];
 			bubbles[list[i].posX,list[i].posY] = null;
-			Vector3 pos  = bubble.transform.localPosition;
 			BubblePool.Get().Push(bubble.gameObject);
 		}
 		scores += list.Count * ScoresPerBubble;
@@ -305,7 +308,6 @@ public class Game : MonoBehaviour {
 
 	void dropBalls (bool withSlip = false)
 	{
-		bool isMoved = false;
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
@@ -360,28 +362,15 @@ public class Game : MonoBehaviour {
 					tmp.posY = tmpY;
 					tmp.addMovePoints(positions);
 					moveBubbles.Add(tmp);
-//					bubblesInAction++;
-//					StartCoroutine(moveBubble(tmp,positions,!withSlip));
 				}
-				if(positions.Count>0) isMoved = true;
 			}
 		}
-//		if (isMoved && withSlip)
-//			dropBalls (true);
-//		else
 		if (!withSlip)
 			dropBalls (true);
 		else
 		{
 			moveAllBubbles();
 		}
-//		if(bubblesInAction == 0 )
-//		{
-//			if(withSlip)
-//				dropNewBalls();
-//			else
-//				dropBalls(true);
-//		}
 	}
 
 	void moveAllBubbles ()
@@ -499,7 +488,6 @@ public class Game : MonoBehaviour {
 		{
 			repeats[k] = 0;
 		}
-		List<KeyValuePair<Bubble,int>> newBubbles = new List<KeyValuePair<Bubble,int>> (); 
 		for(int j = 0; j < TableSize; j++)
 		{
 
@@ -618,35 +606,49 @@ public class Game : MonoBehaviour {
 
 	void fillTableSeparators ()
 	{
-//		for(int i = 0; i < TableSize;i++)
-//		{
-//			if(i == 2) continue;
-//			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
-//			Separator separ = obj.GetComponent<Separator>(); 
-//			separ.posX = i;
-//			separ.posY = 2;
-//			separators[separ.posX,separ.posY] = separ;
-////			if(i == 0)
-////				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
-////			else
-//			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
-//			insertSeparatorTable(separ);
-//		}
-
-		for(int j = 0; j < TableSize;j++)
+		for(int i = 0; i < TableSize;i++)
 		{
-			if(j==3)continue;
+			for(int j = 0; j < TableSize;j++)
+			{
+				if((i == 1 || i ==4) && (j==3 || j==4 || j==5))
+				{
+					GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+					Separator separ = obj.GetComponent<Separator>(); 
+					separ.posX = i;
+					separ.posY = j;
+					separators[separ.posX,separ.posY] = separ;
+					separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,3/*UnityEngine.Random.Range(1,4)*/);
+					insertSeparatorTable(separ);
+				}
+			}
+		}
+		for(int i = 0; i < TableSize;i++)
+		{
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = j;
+			separ.posX = i;
 			separ.posY = 3;
 			separators[separ.posX,separ.posY] = separ;
-//			if(j==1)
-//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
+//			if(i == 0)
+//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
 //			else
-				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
+			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,1);
 			insertSeparatorTable(separ);
 		}
+//		for(int j = 0; j < TableSize;j++)
+//		{
+//			if(j==3)continue;
+//			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+//			Separator separ = obj.GetComponent<Separator>(); 
+//			separ.posX = j;
+//			separ.posY = 3;
+//			separators[separ.posX,separ.posY] = separ;
+////			if(j==1)
+////				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
+////			else
+//				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
+//			insertSeparatorTable(separ);
+//		}
 
 	}
 
@@ -697,9 +699,9 @@ public class Game : MonoBehaviour {
 			cell.posY = j;
 			cells[i,j] = cell;
 			insertCellTable(cell);
-//			if((i == 2 || i ==1 || i ==3) && j == 3)
-//				cell.SetType(Cell.Type.groundBlock,bubbleSize);
-//			else
+			if( j == TableSize - 1 && (i !=2 && i !=3 && i !=4))
+				cell.SetType(Cell.Type.groundBlock,bubbleSize);
+			else
 				cell.SetType(Cell.Type.empty,bubbleSize);
 		}
 	}
@@ -759,7 +761,7 @@ public class Game : MonoBehaviour {
 		for(int i =0; i < TableSize;i++)
 			for(int j =0; j < TableSize; j++)
 		{
-			newPositions[i,j] = 0;
+			newPositions[i,j] = -1;
 		}
 	}
 

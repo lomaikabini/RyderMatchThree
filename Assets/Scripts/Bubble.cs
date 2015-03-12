@@ -64,7 +64,14 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 
 	public void playMovedAnim()
 	{
-		animator.Play ("Bounce", 0, 0f);
+		int num =(int) Random.Range (0, 3);
+		switch(num)
+		{
+			case 0:animator.Play ("Bounce", 0, 0f);break;
+			case 1:animator.Play ("Scale", 0, 0f);break;
+			default:break;
+		}
+
 	}
 
 	public void playChosedAnim()
