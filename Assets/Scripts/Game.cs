@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using UnityEngine.UI;
-using UnityEditor;
+//using UnityEditor;
 
 public class Game : MonoBehaviour {
 
@@ -413,6 +413,7 @@ public class Game : MonoBehaviour {
 			yield return new WaitForEndOfFrame();
 		}
 		bubblesInAction --;
+		bubble.playMovedAnim ();
 		if(bubblesInAction == 0)
 		{
 			if(!repeatBubbleDrop)
@@ -446,7 +447,7 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	IEnumerator moveBubble (Bubble bubble,int steps)
+	IEnumerator moveBubbleMix (Bubble bubble,int steps,float posX,float posY)
 	{
 		yield return new WaitForEndOfFrame ();
 		Vector3 startPos = bubble.transform.localPosition;
@@ -557,7 +558,7 @@ public class Game : MonoBehaviour {
 		}
 		if(bubblesInAction== 0)
 		{
-			gameState = GameState.free;
+			checkPossibleMatch();
 		}
 	}
 
@@ -711,158 +712,47 @@ public class Game : MonoBehaviour {
 			}
 	}
 
-	bool checkPossibleMatch()
+	void checkPossibleMatch()
 	{
-		bool res = false;
-		for(int i = 0; i < TableSize; i++)
-			for(int j = 0; j < TableSize;j++)
+		for(int i =0; i < TableSize;i++)
+			for(int j =0; j < TableSize; j++)
 		{
-			if(bubbles[i,j] == null) continue;
-
-			swapBubblesIndexes(i,j,0,1);
-			if(checkAllDirections(i,j))
+			int equals = 0;
+			Bubble bubble = bubbles[i,j];
+			if(bubble == null) continue;
+			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && (separators[i-1,j] == null || separators[i-1,j].type != Separator.Type.vertical))
+				equals++;
+			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type)
+				equals++;
+			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type)
+				equals++;
+			if(j-1 >= 0 && bubbles[i,j-1] != null && bubbles[i,j-1].type == bubble.type && (separators[i,j] == null || separators[i,j].type != Separator.Type.horizontal))
+				equals++;
+			if(j+1 < TableSize && bubbles[i,j+1] != null && bubbles[i,j+1].type == bubble.type && (separators[i,j+1] == null || separators[i,j+1].type != Separator.Type.horizontal))
+				equals++;
+			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type)
+				equals++;
+			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type)
+				equals++;
+			if(i+1 < TableSize && bubbles[i+1,j] != null && bubbles[i+1,j].type == bubble.type && (separators[i,j] == null || separators[i,j].type != Separator.Type.vertical))
+				equals++;
+			if(equals >=2)
 			{
-				swapBubblesIndexes(i,j,0,-1);
-				res = true;
-				goto exit;
-			}
-
-			swapBubblesIndexes(i,j,0,-1);
-			if(checkAllDirections(i,j))
-			{
-				swapBubblesIndexes(i,j,0,1);
-				res = true;
-				goto exit;
-			}
-
-			swapBubblesIndexes(i,j,1,0);
-			if(checkAllDirections(i,j))
-			{
-				swapBubblesIndexes(i,j,-1,0);
-				res = true;
-				goto exit;
-			}
-
-			swapBubblesIndexes(i,j,-1,0);
-			if(checkAllDirections(i,j))
-			{
-				swapBubblesIndexes(i,j,1,0);
-				res = true;
-				goto exit;
+				gameState = GameState.free;
+				return;
 			}
 		}
-		exit:
-		return res;
+		mixBubbles ();
 	}
 
-	bool checkAllDirections(int x, int y)
+	void mixBubbles ()
 	{
-		if(checkLineMatch(x,0,0,1)) return true;
-		if(checkLineMatch(0,y,1,0)) return true;
-		return false;
-	}
-
-	bool checkAllDirections(int x, int y, ref List<Bubble> list)
-	{
-		bool res = false;
-		if(checkLineMatch(x,0,0,1,ref list)) res = true;
-		if(checkLineMatch(0,y,1,0,ref list)) res = true;
-		return res;
-	}
-
-	void swapBubblesIndexes(int x, int y, int dirX,int dirY)
-	{
-		int newX = x + dirX;
-		int newY = y + dirY;
-
-		Bubble tmp = bubbles [x, y];
-		Bubble tmp2;
-		if(newX >= TableSize || newX < 0 || newY >=TableSize || newY < 0)
-			tmp2 = null;
-		else 
-			tmp2 = bubbles [newX, newY];
-		if(tmp2 != null)
+		int[,] newPositions = new int[TableSize, TableSize];
+		for(int i =0; i < TableSize;i++)
+			for(int j =0; j < TableSize; j++)
 		{
-			bubbles [x, y] = tmp2;
-			bubbles [newX, newY] = tmp;
-			bubbles [newX, newY].posX = newX;
-			bubbles [newX, newY].posY = newY;
-
-			bubbles [x,y].posX = x;
-			bubbles [x,y].posY = y;
+			newPositions[i,j] = 0;
 		}
-	}
-
-	bool checkMatch (int x, int y, int dirX, int dirY, ref List<Bubble> list)
-	{
-		int tmpX = 0;
-		int tmpY = 0;
-		int tmpL = checkDirection (x, y, dirX, dirY,ref tmpX, out tmpY);
-			if(tmpL >=3)
-			{
-				while(tmpL>0)
-				{
-					tmpL --;
-					tmpX -= dirX;
-					tmpY -= dirY;
-					if(list != null)
-						list.Add(bubbles[tmpX,tmpY]);
-				}
-				return true;
-			}
-			return false;
-	}
-	bool checkMatch (int x, int y, int dirX, int dirY)
-	{
-		int tmpX = 0;
-		int tmpY = 0;
-		int tmpL = checkDirection (x, y, dirX, dirY,ref tmpX, out tmpY);
-		if(tmpL >=3)
-		{
-			return true;
-		}
-		return false;
-	}
-	int checkDirection (int x, int y, int dirX, int dirY, ref int resX , out int resY)
-	{
-		int tmpX = x + dirX;
-		int tmpY = y + dirY;
-		int tmpL = 1;
-		if(bubbles[x,y] != null)
-		{
-			while(tmpX <= TableSize-1 && tmpY <= TableSize-1 && bubbles[tmpX,tmpY] != null && bubbles[x,y] != null && bubbles[x,y].type == bubbles[tmpX,tmpY].type)
-			{
-				tmpX += dirX;
-				tmpY += dirY;
-				tmpL ++;
-			}
-		}
-		resX = tmpX;
-		resY = tmpY;
-		return tmpL;
-	}
-
-	bool checkLineMatch(int x, int y, int dirX,int dirY)
-	{
-		for(int i = 0; i < TableSize; i++)
-		{
-			if(checkMatch (x,y,dirX,dirY)) return true;
-			x += dirX;
-			y +=dirY;
-		}
-		return false;
-	}
-
-	bool checkLineMatch(int x, int y, int dirX,int dirY, ref List<Bubble> list)
-	{
-		bool res = false;
-		for(int i = 0; i < TableSize; i++)
-		{
-			if(checkMatch (x,y,dirX,dirY,ref list)) res = true;
-			x += dirX;
-			y +=dirY;
-		}
-		return res;
 	}
 
 	void insertSeparatorTable(Separator separ)

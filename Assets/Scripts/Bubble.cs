@@ -7,6 +7,7 @@ using UnityEngine.EventSystems;
 public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
+	public 	Animator animator;
 	public enum Type
 	{
 		blue,
@@ -60,7 +61,10 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 		RealeaseBubble ();
 		SetNotChosed ();
 	}
-
+	public void playMovedAnim()
+	{
+		animator.Play ("Scale", 0, 0f);
+	}
 	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
 	{
 		int count = list.Count;
