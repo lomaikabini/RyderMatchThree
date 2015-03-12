@@ -61,10 +61,17 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 		RealeaseBubble ();
 		SetNotChosed ();
 	}
+
 	public void playMovedAnim()
 	{
 		animator.Play ("Bounce", 0, 0f);
 	}
+
+	public void playChosedAnim()
+	{
+		animator.Play ("Scale", 0, 0f);
+	}
+
 	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
 	{
 		int count = list.Count;

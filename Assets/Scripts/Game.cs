@@ -31,7 +31,7 @@ public class Game : MonoBehaviour {
 	}
 
 	private float speedStart = 4f;
-	private float speedMax = 10f;
+	private float speedMax = 15f;
 	private float speedBoost = 10f;
 	private float bubbleSize;
 	private float bubblesOffset;
@@ -90,6 +90,7 @@ public class Game : MonoBehaviour {
 	{
 		if (gameState != GameState.free)
 						return;
+		bubble.playChosedAnim ();
 		matchBubbles.Add (bubble);
 		bubble.SetChosed ();
 		gameState = GameState.bubblePressed;
@@ -133,6 +134,7 @@ public class Game : MonoBehaviour {
 		int indx = matchBubbles.Count - 1;
 		if (!exist && Mathf.Abs (matchBubbles[indx].posX - bubble.posX) <= 1 && Mathf.Abs (matchBubbles[indx].posY - bubble.posY) <= 1)
 			{
+				bubble.playChosedAnim ();
 				matchBubbles.Add(bubble);
 				bubble.SetChosed();
 				if(matchBubbles.Count == 3)
@@ -658,7 +660,7 @@ public class Game : MonoBehaviour {
 			cell.posX = i;
 			cell.posY = j;
 			insertCellTable(cell);
-			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
 
 		for(int i = TableSize; i < TableSize+3; i++)
@@ -669,7 +671,7 @@ public class Game : MonoBehaviour {
 			cell.posX = i;
 			cell.posY = j;
 			insertCellTable(cell);
-			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
 		for(int i = -3; i < TableSize+3; i++)
 			for(int j = -2; j < 0;j++)
@@ -679,7 +681,7 @@ public class Game : MonoBehaviour {
 			cell.posX = i;
 			cell.posY = j;
 			insertCellTable(cell);
-			cell.SetType(Cell.Type.groundBlock,bubbleSize);
+			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
 	}
 
