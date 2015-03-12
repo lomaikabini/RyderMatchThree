@@ -116,7 +116,6 @@ public class Game : MonoBehaviour {
 				return;
 		}
 
-
 		bool exist = matchBubbles.Exists (e => e == bubble);
 		if(exist && matchBubbles.IndexOf(bubble) == matchBubbles.Count-2)
 		{
@@ -606,49 +605,49 @@ public class Game : MonoBehaviour {
 
 	void fillTableSeparators ()
 	{
-		for(int i = 0; i < TableSize;i++)
-		{
-			for(int j = 0; j < TableSize;j++)
-			{
-				if((i == 1 || i ==4) && (j==3 || j==4 || j==5))
-				{
-					GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
-					Separator separ = obj.GetComponent<Separator>(); 
-					separ.posX = i;
-					separ.posY = j;
-					separators[separ.posX,separ.posY] = separ;
-					separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,3/*UnityEngine.Random.Range(1,4)*/);
-					insertSeparatorTable(separ);
-				}
-			}
-		}
-		for(int i = 0; i < TableSize;i++)
-		{
-			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
-			Separator separ = obj.GetComponent<Separator>(); 
-			separ.posX = i;
-			separ.posY = 3;
-			separators[separ.posX,separ.posY] = separ;
-//			if(i == 0)
-//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
-//			else
-			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,1);
-			insertSeparatorTable(separ);
-		}
-//		for(int j = 0; j < TableSize;j++)
+//		for(int i = 0; i < TableSize;i++)
 //		{
-//			if(j==3)continue;
+//			for(int j = 0; j < TableSize;j++)
+//			{
+//				if((i == 1 || i ==4) && (j==3 || j==4 || j==5))
+//				{
+//					GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+//					Separator separ = obj.GetComponent<Separator>(); 
+//					separ.posX = i;
+//					separ.posY = j;
+//					separators[separ.posX,separ.posY] = separ;
+//					separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,3/*UnityEngine.Random.Range(1,4)*/);
+//					insertSeparatorTable(separ);
+//				}
+//			}
+//		}
+//		for(int i = 0; i < TableSize;i++)
+//		{
 //			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 //			Separator separ = obj.GetComponent<Separator>(); 
-//			separ.posX = j;
+//			separ.posX = i;
 //			separ.posY = 3;
 //			separators[separ.posX,separ.posY] = separ;
-////			if(j==1)
-////				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
+////			if(i == 0)
+////				separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,UnityEngine.Random.Range(1,4));
 ////			else
-//				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
+//			separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,1);
 //			insertSeparatorTable(separ);
 //		}
+		for(int j = 0; j < TableSize;j++)
+		{
+			if(j==3)continue;
+			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Separator separ = obj.GetComponent<Separator>(); 
+			separ.posX = j;
+			separ.posY = 3;
+			separators[separ.posX,separ.posY] = separ;
+//			if(j==1)
+//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
+//			else
+				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
+			insertSeparatorTable(separ);
+		}
 
 	}
 
@@ -758,11 +757,22 @@ public class Game : MonoBehaviour {
 	void mixBubbles ()
 	{
 		int[,] newPositions = new int[TableSize, TableSize];
+		List<Vector2> positions = new List<Vector2> ();
 		for(int i =0; i < TableSize;i++)
 			for(int j =0; j < TableSize; j++)
 		{
-			newPositions[i,j] = -1;
+			if(bubbles[i,j] == null)
+				newPositions[i,j] = -1;
+			else
+			{
+				newPositions[i,j] = 0;
+				if(positions.Count == 0)
+				{
+					positions.Add(new Vector2((float)i, (float) j));
+				}
+			}
 		}
+	next:;
 	}
 
 	void insertSeparatorTable(Separator separ)
