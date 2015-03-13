@@ -675,14 +675,14 @@ public class Game : MonoBehaviour {
 		{
 			for(int j = 0; j < TableSize;j++)
 			{
-				if((i == 1 || i ==4) && (j==3 || j==4 || j==5))
+				if((i == 1 || i ==4) && (j==3 /*|| j==4*/ || j==5))
 				{
 					GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 					Separator separ = obj.GetComponent<Separator>(); 
 					separ.posX = i;
 					separ.posY = j;
 					separatorsVertical[separ.posX,separ.posY] = separ;
-					separ.SetType(Separator.Type.vertical,Separator.DestroyType.destroy,bubbleSize,3/*UnityEngine.Random.Range(1,4)*/);
+					separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1/*UnityEngine.Random.Range(1,4)*/);
 					insertSeparatorTable(separ);
 				}
 			}
@@ -702,13 +702,13 @@ public class Game : MonoBehaviour {
 //		}
 		for(int j = 0; j < TableSize;j++)
 		{
-			//if(j==3)continue;
+			if(j==3)continue;
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
 			separ.posX = j;
 			separ.posY = 3;
 			separatorsHorizontal[separ.posX,separ.posY] = separ;
-				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,1);
+				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
 			insertSeparatorTable(separ);
 		}
 
@@ -771,7 +771,7 @@ public class Game : MonoBehaviour {
 	void fillTableBubbles ()
 	{
 		for(int i = 0; i < TableSize; i++)
-			for(int j = 2; j < TableSize;j++)
+			for(int j = 3; j < TableSize;j++)
 			{
 			if(i == 2 && j ==2) continue;
 				if(cells[i,j].cellType != Cell.Type.empty) continue;
@@ -792,22 +792,30 @@ public class Game : MonoBehaviour {
 			int equals = 0;
 			Bubble bubble = bubbles[i,j];
 			if(bubble == null) continue;
+			//vertikalnie i gorizontalnie matchi
 			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
-				equals++;
-			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type)
-				equals++;
-			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type)
 				equals++;
 			if(j-1 >= 0 && bubbles[i,j-1] != null && bubbles[i,j-1].type == bubble.type && separatorsHorizontal[i,j] == null)
 				equals++;
 			if(j+1 < TableSize && bubbles[i,j+1] != null && bubbles[i,j+1].type == bubble.type && separatorsHorizontal[i,j+1] == null)
 				equals++;
-			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type)
-				equals++;
-			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type)
-				equals++;
 			if(i+1 < TableSize && bubbles[i+1,j] != null && bubbles[i+1,j].type == bubble.type && separatorsVertical[i,j] == null)
 				equals++;
+
+			//diagonalnie
+			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
+			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty)))
+				equals++;
+			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
+			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty)))
+				equals++;
+			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
+			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty)))
+				equals++;
+			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
+			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty)))
+				equals++;
+
 			if(equals >=2)
 			{
 				gameState = GameState.free;
@@ -819,6 +827,7 @@ public class Game : MonoBehaviour {
 
 	void mixBubbles ()
 	{
+		Debug.Log("mix bubbles");
 		int[,] newPositions = new int[TableSize, TableSize];
 		List<Vector2> positions = new List<Vector2> ();
 		for(int i =0; i < TableSize;i++)
