@@ -79,9 +79,9 @@ public class Game : MonoBehaviour {
 		fillEnvironment ();
 		fillTableCells ();
 		fillTableSeparators ();
-		//fillTableBubbles ();
-		gameState = GameState.InAction;
-		dropNewBalls ();
+		fillTableBubbles ();
+		//gameState = GameState.InAction;
+		//dropNewBalls ();
 		showScores ();
 	}
 
@@ -474,6 +474,73 @@ public class Game : MonoBehaviour {
 //			checkAllTable();
 	}
 
+	void moveBubblesMix()
+	{
+		float size = ((float)(TableSize - 1)) / 2f;
+		for(int i = 1; i <= moveBubbles.Count; i++)
+		{
+			float posX;
+			float posY;
+			if(i==1)
+			{
+				posX = size - 0.5f;
+				posY = size + 0.5f;
+			}
+			else if(i == 2)
+			{
+				posX = size;
+				posY = size+0.5f;
+			}
+			else if(i == 3)
+			{
+				posX = size +0.5f;
+				posY = size +0.5f;
+			}
+			else if(i == 4)
+			{
+				posX = size - 1f;
+				posY = size;
+			}
+			else if(i == 5)
+			{
+				posX = size;
+				posY = size;
+			}
+			else if(i == 6)
+			{
+				posX = size + 1f;
+				posY = size;
+			}
+			else if(i == 7)
+			{
+				posX = size  - 0.5f;
+				posY = size - 0.5f;
+			}
+			else if(i == 8)
+			{
+				posX = size;
+				posY = size -1f;
+			}
+			else if(i==9)
+			{
+				posX = size + 1f;
+				posY = size - 1f;
+			}
+			else
+			{
+				posX = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
+				posY = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
+			}
+			moveBubbles[i-1].whereMove.Add(new KeyValuePair<float, Vector2>(2f,new Vector2(posX,posY)));
+			moveBubbles[i-1].whereMove.Add(new KeyValuePair<float, Vector2>(2f,new Vector2((float)moveBubbles[i-1].posX,(float)moveBubbles[i-1].posY)));
+		}
+
+		for(int i = 0; i < moveBubbles.Count; i++)
+		{
+			bubblesInAction++;
+			StartCoroutine(moveBubbleMix(moveBubbles[i],moveBubbles[i].whereMove));
+		}
+	}
 
 	IEnumerator moveBubble (Bubble bubble,List<KeyValuePair<float,Vector2>> positions,bool repeatBubbleDrop)
 	{
@@ -531,22 +598,55 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	IEnumerator moveBubbleMix (Bubble bubble,int steps,float posX,float posY)
+	IEnumerator moveBubbleMix (Bubble bubble,List<KeyValuePair<float,Vector2>> positions)
 	{
 		yield return new WaitForEndOfFrame ();
-		Vector3 startPos = bubble.transform.localPosition;
-		Vector3 endPos = new Vector3((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
-		float cof = 0;
-		while(cof < 1f)
+		float speed = speedStart;
+		for(int i = 0; i < positions.Count; i++)
 		{
-			cof += Time.deltaTime*speedStart/(float)steps;
-			cof = Mathf.Min(cof,1f);
-			bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
+			float steps = positions [i].Key;
+			Vector3 startPos = bubble.transform.localPosition;
+			Vector3 endPos = new Vector3((float)positions[i].Value.x * bubbleSize + ((float)(positions[i].Value.x) * BubblePadding)-bubblesOffset,(float)positions[i].Value.y * bubbleSize + ((float)(positions[i].Value.y) * BubblePadding)-bubblesOffset, 0f);
+			float cof = 0;
+			while(cof < 1f)
+			{
+				speed +=Time.deltaTime * speedBoost;
+				speed = Mathf.Min(speed, speedMax);
+				cof += Time.deltaTime*speed/(float)steps;
+				cof = Mathf.Min(cof,1f);
+				bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
+				yield return new WaitForEndOfFrame();
+			}
+			float size = ((float)(TableSize-1))/2f;
+			if(i==0)
+			for(int j = 0; j < 5; j++)
+			{
+				float c = 0f;
+				Vector3 p1 = bubble.transform.localPosition;
+				Vector3 p2 = new Vector3(UnityEngine.Random.Range((size-100f)*100f,(size+100f)*100f)/100f,UnityEngine.Random.Range((size-100f)*100f,(size+100f)*100f)/100f,0f);
+				while(c < 1f)
+				{
+					c += Time.deltaTime*6f;
+					c = Mathf.Min(c,1f);
+					bubble.transform.localPosition = Vector3.Lerp(p1,p2,c);
+					yield return new WaitForEndOfFrame();
+				}
+			}
 			yield return new WaitForEndOfFrame();
 		}
 		bubblesInAction --;
-		if (bubblesInAction == 0)
-			dropBalls (true);//checkAllTable();
+		bubble.playMovedAnim ();
+		if(bubblesInAction == 0)
+		{
+			int count = moveBubbles.Count;
+			for(int i = 0; i < count; i++)
+			{
+				moveBubbles[i].whereMove.RemoveRange(0,moveBubbles[i].whereMove.Count);
+			}
+			moveBubbles.RemoveRange (0, moveBubbles.Count);
+			checkAllTable();
+		}
+		
 		yield return null;
 	}
 
@@ -675,7 +775,7 @@ public class Game : MonoBehaviour {
 		{
 			for(int j = 0; j < TableSize;j++)
 			{
-				if((i == 1 || i ==4) && (j==3 /*|| j==4*/ || j==5))
+				if((i == 1 || i ==4) && (j==3 || j==4 || j==5))
 				{
 					GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 					Separator separ = obj.GetComponent<Separator>(); 
@@ -702,7 +802,7 @@ public class Game : MonoBehaviour {
 //		}
 		for(int j = 0; j < TableSize;j++)
 		{
-			if(j==3)continue;
+			//if(j==3)continue;
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
 			separ.posX = j;
@@ -804,16 +904,16 @@ public class Game : MonoBehaviour {
 
 			//diagonalnie
 			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
-			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty)))
+			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
 				equals++;
 			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
-			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty)))
+			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
 				equals++;
 			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
-			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty)))
+			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
 				equals++;
 			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
-			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty)))
+			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
 				equals++;
 
 			if(equals >=2)
@@ -827,9 +927,9 @@ public class Game : MonoBehaviour {
 
 	void mixBubbles ()
 	{
-		Debug.Log("mix bubbles");
 		int[,] newPositions = new int[TableSize, TableSize];
 		List<Vector2> positions = new List<Vector2> ();
+		List<Bubble> tmpBubbles = new List<Bubble> ();
 		for(int i =0; i < TableSize;i++)
 			for(int j =0; j < TableSize; j++)
 		{
@@ -837,14 +937,112 @@ public class Game : MonoBehaviour {
 				newPositions[i,j] = -1;
 			else
 			{
+				tmpBubbles.Add(bubbles[i,j]);
 				newPositions[i,j] = 0;
-				if(positions.Count == 0)
-				{
-					positions.Add(new Vector2((float)i, (float) j));
-				}
 			}
 		}
-	next:;
+
+		for(int i =0; i < TableSize;i++)
+			for(int j =0; j < TableSize; j++)
+		{
+			int equals = 0;
+			if(newPositions[i,j] == -1) continue;
+			positions.Add(new Vector2(i,j));
+			//vertikalnie i gorizontalnie matchi
+			if(i-1 >= 0 && newPositions[i-1,j] != -1 && separatorsVertical[i-1,j] == null)
+			{
+				positions.Add(new Vector2((float)(i-1),(float)j));
+			}
+			if(j-1 >= 0 && newPositions[i,j-1] != -1 && separatorsHorizontal[i,j] == null)
+			{
+				positions.Add(new Vector2((float)(i),(float)(j-1)));
+			}
+			if(j+1 < TableSize && newPositions[i,j+1] != -1 && separatorsHorizontal[i,j+1] == null)
+			{
+				positions.Add(new Vector2((float)i,(float)(j+1)));
+			}
+			if(i+1 < TableSize && newPositions[i+1,j] != -1 && separatorsVertical[i,j] == null)
+			{
+				positions.Add(new Vector2((float)(i+1),(float)j));
+			}
+			//diagonalnie
+			if(i-1 >= 0 && j+1 < TableSize && newPositions[i-1,j+1] != -1 &&
+			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			{
+				positions.Add(new Vector2((float)(i-1),(float)(j+1)));
+			}
+			if(i-1 >= 0 && j-1 >=0 && newPositions[i-1,j-1] != -1 &&
+			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
+			{
+				positions.Add(new Vector2((float)(i-1),(float)(j-1)));
+			}
+			if(i+1 < TableSize && j-1 >= 0 && newPositions[i+1,j-1] != -1 &&
+			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
+			{
+				positions.Add(new Vector2((float)(i+1),(float)(j-1)));
+			}
+			if(i+1 < TableSize && j+1 < TableSize && newPositions[i+1,j+1] != -1 &&
+			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			{
+				positions.Add(new Vector2((float)(i+1),(float)(j+1)));
+			}
+			if(positions.Count >=3)
+			{
+				goto next;
+			}
+			else
+				positions.RemoveRange(0,positions.Count);
+		}
+
+
+		next:
+		List<Bubble> bubblesForMatch;
+		for(int i = 0; i < Enum.GetNames(typeof(Bubble.Type)).Length;i++)
+		{
+			bubblesForMatch = tmpBubbles.FindAll(e => e.type == (Bubble.Type)i);
+			if(bubblesForMatch.Count >= 3) break;
+		}
+
+		int count = Mathf.Min(positions.Count, bubblesForMatch.Count);
+
+		for (int i = 0; i < count; i++) 
+		{
+			int x = (int) positions[i].x;
+			int y = (int) positions[i].y;
+			tmpBubbles.Remove(bubblesForMatch[i]);
+			bubblesForMatch[i].posX = x;
+			bubblesForMatch[i].posY = y;
+			newPositions[x,y] = 1;
+			moveBubbles.Add(bubblesForMatch[i]);
+			bubbles[x,y] = bubblesForMatch[i];
+		}
+
+		for(int i = 0; i < tmpBubbles.Count; i++)
+		{
+			int x = UnityEngine.Random.Range(0,TableSize);
+			int y = UnityEngine.Random.Range(0,TableSize);
+
+			while(newPositions[x,y]!=0)
+			{
+				if(x+1 < TableSize)
+					x++;
+				else
+				{
+					x = 0;
+					if(y+1 < TableSize)
+						y++;
+					else
+						y = 0;
+				}
+			}
+
+			tmpBubbles[i].posX = x;
+			tmpBubbles[i].posY = y;
+			newPositions[x,y] = 1;
+			moveBubbles.Add(tmpBubbles[i]);
+			bubbles[x,y] = tmpBubbles[i];
+		}
+		moveBubblesMix();
 	}
 
 	void insertSeparatorTable(Separator separ)
