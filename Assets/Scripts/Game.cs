@@ -106,17 +106,35 @@ public class Game : MonoBehaviour {
 			return;
 		if (matchBubbles.Count == 0 || bubble.type != matchBubbles [0].type)
 			return;
+		int xMin = Mathf.Min(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
+		int xMax = Mathf.Max(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
+		int yMax = Mathf.Max(matchBubbles[matchBubbles.Count-1].posY, bubble.posY);
+		int yMin = Mathf.Min(matchBubbles[matchBubbles.Count-1].posY, bubble.posY);
 		if(matchBubbles[matchBubbles.Count-1].posY == bubble.posY)
 		{
-			int lowX = Mathf.Min(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
-			if(separatorsVertical[lowX,bubble.posY] != null)
+			if(separatorsVertical[xMin,bubble.posY] != null)
 				return;
 		}
 		if(matchBubbles[matchBubbles.Count-1].posX == bubble.posX)
 		{
-			int maxY = Mathf.Max(matchBubbles[matchBubbles.Count-1].posY, bubble.posY);
-			if(separatorsHorizontal[bubble.posX, maxY] != null)
+			if(separatorsHorizontal[bubble.posX, yMax] != null)
 				return;
+		}
+		//Didn't test this exception block
+		if(matchBubbles[matchBubbles.Count-1].posY != bubble.posY && matchBubbles[matchBubbles.Count-1].posX != bubble.posX)
+		{
+			//for  horizontals blocks
+			if((separatorsHorizontal[matchBubbles[matchBubbles.Count-1].posX,yMax] != null || cells[matchBubbles[matchBubbles.Count-1].posX,yMax].cellType != Cell.Type.empty || cells[matchBubbles[matchBubbles.Count-1].posX,yMin].cellType != Cell.Type.empty)
+			   && (separatorsHorizontal[bubble.posX,yMax] != null || cells[bubble.posX,yMax].cellType != Cell.Type.empty || cells[bubble.posX,yMin].cellType != Cell.Type.empty)) return;
+			//for vertical blocks
+			if((separatorsVertical[xMin,matchBubbles[matchBubbles.Count-1].posY] != null || cells[xMin,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty || cells[xMax,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty)
+			   && (separatorsVertical[xMin,bubble.posY] != null || cells[xMin,bubble.posY].cellType != Cell.Type.empty || cells[xMax,bubble.posY].cellType != Cell.Type.empty)) return;
+
+			//dlya iglovix pregrad isklu4itelno iz separatorov
+			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMax] != null) return;
+			if(separatorsVertical[xMin,yMax] != null && separatorsHorizontal[xMax, yMax] != null) return;
+			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMin] != null) return;
+			if(separatorsHorizontal[xMax,yMax] != null && separatorsVertical[xMax, yMin] != null) return;
 		}
 
 		bool exist = matchBubbles.Exists (e => e == bubble);
@@ -287,7 +305,7 @@ public class Game : MonoBehaviour {
 				}
 				else
 				{
-					Destroy(separatorsVertical[x,y].gameObject);
+					Destroy(separatorsHorizontal[x,y].gameObject);
 					separatorsHorizontal[x,y] = null;
 				}
 			}
@@ -655,16 +673,13 @@ public class Game : MonoBehaviour {
 //		}
 		for(int j = 0; j < TableSize;j++)
 		{
-			if(j==3)continue;
+			//if(j==3)continue;
 			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Separator separ = obj.GetComponent<Separator>(); 
 			separ.posX = j;
 			separ.posY = 3;
 			separatorsHorizontal[separ.posX,separ.posY] = separ;
-//			if(j==1)
-//				separ.SetType(Separator.Type.vertical,Separator.DestroyType.notDestroy,bubbleSize,1);
-//			else
-				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.notDestroy,bubbleSize,1);
+				separ.SetType(Separator.Type.horizontal,Separator.DestroyType.destroy,bubbleSize,1);
 			insertSeparatorTable(separ);
 		}
 
