@@ -131,10 +131,14 @@ public class Game : MonoBehaviour {
 			   && (separatorsVertical[xMin,bubble.posY] != null || cells[xMin,bubble.posY].cellType != Cell.Type.empty || cells[xMax,bubble.posY].cellType != Cell.Type.empty)) return;
 
 			//dlya iglovix pregrad isklu4itelno iz separatorov
-			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMax] != null) return;
-			if(separatorsVertical[xMin,yMax] != null && separatorsHorizontal[xMax, yMax] != null) return;
-			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMin] != null) return;
-			if(separatorsHorizontal[xMax,yMax] != null && separatorsVertical[xMax, yMin] != null) return;
+			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMax] != null &&
+			   ((matchBubbles[matchBubbles.Count-1].posY > bubble.posY && matchBubbles[matchBubbles.Count-1].posX < bubble.posX)||(bubble.posY > matchBubbles[matchBubbles.Count-1].posY && bubble.posX < matchBubbles[matchBubbles.Count-1].posX))) return;
+			if(separatorsVertical[xMin,yMax] != null && separatorsHorizontal[xMax, yMax] != null && 
+			   ((matchBubbles[matchBubbles.Count-1].posY > bubble.posY && matchBubbles[matchBubbles.Count-1].posX > bubble.posX)||(bubble.posY > matchBubbles[matchBubbles.Count-1].posY && bubble.posX > matchBubbles[matchBubbles.Count-1].posX))) return;
+			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMin] != null &&
+			   ((matchBubbles[matchBubbles.Count-1].posY < bubble.posY && matchBubbles[matchBubbles.Count-1].posX < bubble.posX)||(bubble.posY < matchBubbles[matchBubbles.Count-1].posY && bubble.posX < matchBubbles[matchBubbles.Count-1].posX))) return;
+			if(separatorsHorizontal[xMax,yMax] != null && separatorsVertical[xMax, yMin] != null &&
+			   ((matchBubbles[matchBubbles.Count-1].posY < bubble.posY && matchBubbles[matchBubbles.Count-1].posX > bubble.posX)||(bubble.posY < matchBubbles[matchBubbles.Count-1].posY && bubble.posX > matchBubbles[matchBubbles.Count-1].posX))) return;
 		}
 
 		bool exist = matchBubbles.Exists (e => e == bubble);
@@ -142,6 +146,7 @@ public class Game : MonoBehaviour {
 		{
 			int id = matchBubbles.Count-1;
 			matchBubbles[id].SetNotChosed();
+			matchBubbles[id].playChosedAnim();
 			matchBubbles.Remove(matchBubbles[id]);
 			if(joints.Count > 0)
 			{
@@ -340,6 +345,7 @@ public class Game : MonoBehaviour {
 
 	void dropBalls (bool withSlip = false)
 	{
+		float dir = -1;
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
