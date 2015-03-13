@@ -36,6 +36,7 @@ public class Game : MonoBehaviour {
 	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;
+	private float dir = -1;
 
 	private int bubblesInAction = 0;
 	private int scores = 0;
@@ -345,7 +346,6 @@ public class Game : MonoBehaviour {
 
 	void dropBalls (bool withSlip = false)
 	{
-		float dir = -1;
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
@@ -365,73 +365,7 @@ public class Game : MonoBehaviour {
 					positions.Add(new KeyValuePair<float, Vector2>(j - indx, new Vector2((float) tmpX,(float) tmpY)));
 				if(withSlip)
 				{
-					if(dir==1)
-					{
-						dir = -1;
-					slipStart1:
-							while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-							      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
-						{
-							//dir = -1;
-							tmpX = tmpX-1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-						}
-						
-						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-						      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
-						{
-							//dir = 1;
-							tmpX = tmpX+1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-							goto slipStart1;
-						}
-					}
-					else
-					{
-						dir = 1;
-					slipStart2:
-							
-							while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-							      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
-						{
-							//dir = 1;
-							tmpX = tmpX+1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-							
-						}
-						while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-						      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
-						{
-							//dir = -1;
-							tmpX = tmpX-1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-							goto slipStart2;
-						}
-					}
+					positions = findNewPositionForBubble(positions,ref tmpX,out tmpY,tmpY);
 				}
 				if(positions.Count >0)
 				{
@@ -453,11 +387,79 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-//	List<KeyValuePair<float,Vector2>> findNewPositionForBubble(List<KeyValuePair<float,Vector2>> positions,ref int tmpX,out int tmpY, int dir)
-//	{
-//
-//		return positions;
-//	}
+	List<KeyValuePair<float,Vector2>> findNewPositionForBubble(List<KeyValuePair<float,Vector2>> positions,ref int tmpX,out int tmpY,int y)
+	{
+		tmpY = y;
+		if(dir==1)
+		{
+			dir = -1;
+		slipStart1:
+				while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
+				      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
+			{
+				//dir = -1;
+				tmpX = tmpX-1;
+				tmpY = tmpY-1;
+				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+				while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
+				{
+					tmpY--;
+					positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+				}
+			}
+			
+			while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
+			      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
+			{
+				//dir = 1;
+				tmpX = tmpX+1;
+				tmpY = tmpY-1;
+				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+				while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
+				{
+					tmpY--;
+					positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+				}
+				goto slipStart1;
+			}
+		}
+		else
+		{
+			dir = 1;
+		slipStart2:
+				
+				while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
+				      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
+			{
+				//dir = 1;
+				tmpX = tmpX+1;
+				tmpY = tmpY-1;
+				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+				while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
+				{
+					tmpY--;
+					positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+				}
+				
+			}
+			while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
+			      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
+			{
+				//dir = -1;
+				tmpX = tmpX-1;
+				tmpY = tmpY-1;
+				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
+				while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
+				{
+					tmpY--;
+					positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
+				}
+				goto slipStart2;
+			}
+		}
+
+		return positions;
+	}
 
 	void moveAllBubbles ()
 	{
@@ -590,74 +592,8 @@ public class Game : MonoBehaviour {
 					List<KeyValuePair<float,Vector2>> positions = new List<KeyValuePair<float,Vector2>>();
 					if(bubbles[i,j] == null)
 					positions.Add(new KeyValuePair<float, Vector2>(TableSize+repeats[i]-j, new Vector2((float) tmpX,(float) tmpY)));
-					if(dir==1)
-					{
-						dir = -1;
-						slipStart1:
-						while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-						      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
-						{
-							//dir = -1;
-							tmpX = tmpX-1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-						}
-							
-						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-					      	&& separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
-							{
-								//dir = 1;
-								tmpX = tmpX+1;
-								tmpY = tmpY-1;
-								positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-								while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-								{
-									tmpY--;
-									positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-								}
-								goto slipStart1;
-							}
-					}
-					else
-					{
-						dir = 1;
-						slipStart2:
-							
-						while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-						      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
-						{
-							//dir = 1;
-							tmpX = tmpX+1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
 
-						}
-						while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-						      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
-						{
-							//dir = -1;
-							tmpX = tmpX-1;
-							tmpY = tmpY-1;
-							positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
-							while(tmpY >= 1 && bubbles[tmpX,tmpY-1] == null && cells[tmpX,tmpY-1].cellType == Cell.Type.empty && separatorsHorizontal[tmpX,tmpY] == null)
-							{
-								tmpY--;
-								positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
-							}
-							goto slipStart2;
-						}
-					}
-
+					positions = findNewPositionForBubble(positions,ref tmpX,out tmpY,tmpY);
 					if(positions.Count > 0)
 					{
 						Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
