@@ -4,36 +4,10 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using UnityEngine.EventSystems;
 
-public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
+public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
-	public 	Animator animator;
-	public 	Image img;
-	public enum Type
-	{
-		blue,
-		green,
-		purple,
-		red,
-		yellow
-	};
-
-	[HideInInspector]
-	public Type type;
-	[HideInInspector]
-	public int posX;
-	[HideInInspector]
-	public int posY;
-	
-	[HideInInspector]
-	public RectTransform rectTransform;
-	public bool isRun = false;
 	public List<KeyValuePair<float,Vector2>> whereMove =  new List<KeyValuePair<float,Vector2>>();
-	void Awake () 
-	{
-		//img = GetComponent<Image> ();
-		rectTransform = GetComponent<RectTransform> ();
-	}
 
 	public void OnPointerUp (PointerEventData eventData)
 	{
@@ -61,24 +35,7 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 		RealeaseBubble ();
 		SetNotChosed ();
 	}
-
-	public void playMovedAnim()
-	{
-		int num =(int) Random.Range (0, 3);
-		switch(num)
-		{
-			case 0:animator.Play ("Bounce", 0, 0f);break;
-			case 1:animator.Play ("Scale", 0, 0f);break;
-			default:break;
-		}
-
-	}
-
-	public void playChosedAnim()
-	{
-		animator.Play ("Scale", 0, 0f);
-	}
-
+	
 	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
 	{
 		int count = list.Count;
@@ -102,14 +59,14 @@ public class Bubble : MonoBehaviour, IPointerDownHandler,IPointerEnterHandler, I
 		img.color = c;
 	}
 
-	public void SetChosed ()
+	public override void SetChosed ()
 	{
 		Color c = img.color;
 		c.a = 0.8f;
 		img.color = c;
 	}
 
-	public void SetNotChosed()
+	public override void SetNotChosed()
 	{
 		Color c = img.color;
 		c.a = 1f;
