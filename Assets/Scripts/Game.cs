@@ -32,7 +32,7 @@ public class Game : MonoBehaviour {
 
 	private float speedStart = 8f;
 	private float speedMax = 12f;
-	private float speedBoost = 1.5f;
+	private float speedBoost = 3.5f;
 	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;

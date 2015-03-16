@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
-
 	public void OnPointerUp (PointerEventData eventData)
 	{
 		Game.Get ().BubblePointerUp (this);

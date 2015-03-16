@@ -23,15 +23,6 @@ public class Cell : MonoBehaviour {
 		empty,
 		groundBlock,
 		block
-//		,
-//		separatorDestroyLeft,
-//		separatorDestroyRight,
-//		separatorDestroyTop,
-//		separatorDestroyDown,
-//		separatorLeft,
-//		separatorRight,
-//		separatorTop,
-//		separatorDown
 	}
 
 	[Serializable]
@@ -59,7 +50,7 @@ public class Cell : MonoBehaviour {
 	{
 		cellType = t;
 		Sprite sp;
-		kit = getKitByType (t);//SpritesKit[(int) t];
+		kit = getKitByType (t);
 		lvl = kit.sprites.Length;
 		sp = kit.sprites[0];
 		img.sprite = sp;
@@ -67,7 +58,7 @@ public class Cell : MonoBehaviour {
 			rectTransform.sizeDelta = new Vector2 (size, size);
 	}
 
-	Sprites getKitByType (Type t)
+	public Sprites getKitByType (Type t)
 	{
 		for(int i = 0; i < SpritesKit.Length; i++)
 		{

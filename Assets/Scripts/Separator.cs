@@ -69,7 +69,7 @@ public class Separator : MonoBehaviour {
 		return false;
 	}
 
-	Sprites GetKitByType (DestroyType dt)
+	public Sprites GetKitByType (DestroyType dt)
 	{
 		for(int i = 0; i < sprites.Length; i++)
 		{
