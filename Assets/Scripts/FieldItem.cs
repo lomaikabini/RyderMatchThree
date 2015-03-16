@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 using UnityEngine.UI;
+using System.Collections.Generic;
 
 public abstract class FieldItem : MonoBehaviour {
 
@@ -24,10 +25,19 @@ public abstract class FieldItem : MonoBehaviour {
 		yellow,
 		item
 	};
-
+	public List<KeyValuePair<float,Vector2>> whereMove =  new List<KeyValuePair<float,Vector2>>();
 	void Awake () 
 	{
 		rectTransform = GetComponent<RectTransform> ();
+	}
+
+	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
+	{
+		int count = list.Count;
+		for(int i = 0; i < count; i++)
+		{
+			whereMove.Add(list[i]);
+		}
 	}
 
 	public void playMovedAnim()
@@ -46,6 +56,9 @@ public abstract class FieldItem : MonoBehaviour {
 	{
 		animator.Play ("Scale", 0, 0f);
 	}
+	public abstract void SetType(Type tp,float size);
 	public abstract void SetChosed ();
 	public abstract void SetNotChosed();
+	public abstract void HideItem ();
+	public abstract void RealeaseItem();
 }

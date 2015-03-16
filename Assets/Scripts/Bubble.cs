@@ -7,7 +7,6 @@ using UnityEngine.EventSystems;
 public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
-	public List<KeyValuePair<float,Vector2>> whereMove =  new List<KeyValuePair<float,Vector2>>();
 
 	public void OnPointerUp (PointerEventData eventData)
 	{
@@ -24,7 +23,7 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		Game.Get ().BubblePointerEnter (this);
 	}
 
-	public void SetType(Type tp,float size)
+	public override void SetType(Type tp,float size)
 	{
 		type = tp;
 		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
@@ -32,27 +31,18 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
 		rectTransform.sizeDelta = new Vector2 (size, size);
-		RealeaseBubble ();
+		RealeaseItem ();
 		SetNotChosed ();
 	}
-	
-	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
-	{
-		int count = list.Count;
-		for(int i = 0; i < count; i++)
-		{
-			whereMove.Add(list[i]);
-		}
-	}
 
-	public void HideBubble ()
+	public override void HideItem ()
 	{
 		Color c = img.color;
 		c.a = 0.5f;
 		img.color = c;
 	}
 
-	public void RealeaseBubble()
+	public override void RealeaseItem()
 	{
 		Color c = img.color;
 		c.a = 1f;

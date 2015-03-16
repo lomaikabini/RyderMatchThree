@@ -41,13 +41,13 @@ public class Game : MonoBehaviour {
 	private int bubblesInAction = 0;
 
 	private Cell[,] cells;
-	private Bubble[,] bubbles;
+	private FieldItem[,] bubbles;
 	private Separator[,] separatorsHorizontal;
 	private Separator[,] separatorsVertical;
 	private Bubble firstBubble;
 	private Bubble secondBubble;
 	private List<Bubble> matchBubbles =  new List<Bubble>();
-	private List<Bubble> moveBubbles = new List<Bubble> ();
+	private List<FieldItem> moveBubbles = new List<FieldItem> ();
 
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 
@@ -236,7 +236,7 @@ public class Game : MonoBehaviour {
 			for(int j = 0; j < TableSize; j++)
 		{
 			if(bubbles[i,j] != null && bubbles[i,j].type != bubble.type)
-				bubbles[i,j].HideBubble();
+				bubbles[i,j].HideItem();
 		}
 	}
 
@@ -246,7 +246,7 @@ public class Game : MonoBehaviour {
 			for(int j = 0; j < TableSize; j++)
 		{
 			if(bubbles[i,j] != null)
-				bubbles[i,j].RealeaseBubble();
+				bubbles[i,j].RealeaseItem();
 		}
 	}
 
@@ -257,7 +257,7 @@ public class Game : MonoBehaviour {
 		explositionNearSeparators (list);
 		for(int i = 0;i < list.Count; i++)
 		{
-			Bubble bubble = bubbles[list[i].posX,list[i].posY];
+			FieldItem bubble = bubbles[list[i].posX,list[i].posY];
 			bubbles[list[i].posX,list[i].posY] = null;
 			BubblePool.Get().Push(bubble.gameObject);
 		}
@@ -364,7 +364,7 @@ public class Game : MonoBehaviour {
 				}
 				if(positions.Count >0)
 				{
-					Bubble tmp  = bubbles[i,j];
+					FieldItem tmp  = bubbles[i,j];
 					bubbles[i,j] = null;
 					bubbles[tmpX,tmpY] = tmp;
 					tmp.posX = tmpX;
@@ -537,7 +537,7 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	IEnumerator moveBubble (Bubble bubble,List<KeyValuePair<float,Vector2>> positions,bool repeatBubbleDrop)
+	IEnumerator moveBubble (FieldItem bubble,List<KeyValuePair<float,Vector2>> positions,bool repeatBubbleDrop)
 	{
 		yield return new WaitForEndOfFrame ();
 		float speed = speedStart;
@@ -585,7 +585,7 @@ public class Game : MonoBehaviour {
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 0; j < TableSize;j++)
 		{
-			Bubble bubble = bubbles[i,j];
+			FieldItem bubble = bubbles[i,j];
 			if(bubble != null)
 			{
 				Vector3 endPos = new Vector3((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset,(float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
@@ -594,7 +594,7 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	IEnumerator moveBubbleMix (Bubble bubble,List<KeyValuePair<float,Vector2>> positions)
+	IEnumerator moveBubbleMix (FieldItem bubble,List<KeyValuePair<float,Vector2>> positions)
 	{
 		yield return new WaitForEndOfFrame ();
 		float speed = speedStart;
@@ -887,7 +887,7 @@ public class Game : MonoBehaviour {
 			for(int j =0; j < TableSize; j++)
 		{
 			int equals = 0;
-			Bubble bubble = bubbles[i,j];
+			FieldItem bubble = bubbles[i,j];
 			if(bubble == null) continue;
 			//vertikalnie i gorizontalnie matchi
 			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
@@ -926,7 +926,7 @@ public class Game : MonoBehaviour {
 	{
 		int[,] newPositions = new int[TableSize, TableSize];
 		List<Vector2> positions = new List<Vector2> ();
-		List<Bubble> tmpBubbles = new List<Bubble> ();
+		List<FieldItem> tmpBubbles = new List<FieldItem> ();
 		for(int i =0; i < TableSize;i++)
 			for(int j =0; j < TableSize; j++)
 		{
@@ -992,7 +992,7 @@ public class Game : MonoBehaviour {
 
 
 		next:
-		List<Bubble> bubblesForMatch;
+		List<FieldItem> bubblesForMatch;
 		for(int i = 0; i < Enum.GetNames(typeof(Bubble.Type)).Length;i++)
 		{
 			bubblesForMatch = tmpBubbles.FindAll(e => e.type == (Bubble.Type)i);
