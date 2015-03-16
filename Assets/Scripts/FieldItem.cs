@@ -40,15 +40,23 @@ public abstract class FieldItem : MonoBehaviour {
 		}
 	}
 
-	public void playMovedAnim()
+	public void playMovedAnim(bool an = false)
 	{
-		int num =(int) Random.Range (0, 3);
-		switch(num)
-		{
-		case 0:animator.Play ("Bounce", 0, 0f);break;
-		case 1:animator.Play ("Scale", 0, 0f);break;
-		default:break;
-		}
+		if (! an) {
+			int num = (int)Random.Range (0, 3);
+			switch (num) {
+			case 0:
+				animator.Play ("Bounce", 0, 0f);
+				break;
+			case 1:
+				animator.Play ("Scale", 0, 0f);
+				break;
+			default:
+				break;
+			}
+		} else
+			animator.Play ("Bounce", 0, 0f);
+
 		
 	}
 	

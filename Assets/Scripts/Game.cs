@@ -20,6 +20,7 @@ public class Game : MonoBehaviour {
 
 	public Text scoresView;
 	public Animator curtainAnimator;
+	public Animator tableAnimator;
 
 	[HideInInspector]
 	public GameState gameState;
@@ -30,8 +31,8 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speedStart = 8f;
-	private float speedMax = 12f;
+	private float speedStart = 10f;
+	private float speedMax = 14f;
 	private float speedBoost = 3.5f;
 	private float bubbleSize;
 	private float bubblesOffset;
@@ -39,6 +40,7 @@ public class Game : MonoBehaviour {
 	private float dir = -1;
 
 	private int bubblesInAction = 0;
+	private int lastBubblePosY;
 
 	private Cell[,] cells;
 	private FieldItem[,] bubbles;
@@ -266,7 +268,9 @@ public class Game : MonoBehaviour {
 
 	IEnumerator dropBallsWithDelay(float delay)
 	{
+		tableAnimator.Play ("DarkenTheScreen",0,0f);
 		yield return new WaitForSeconds (delay);
+		tableAnimator.Play ("LightenTheScreen",0,0f);
 		dropBalls ();
 		yield return null;
 	}
@@ -460,6 +464,12 @@ public class Game : MonoBehaviour {
 	{
 		dropNewBalls ();
 		int count = moveBubbles.Count;
+		lastBubblePosY = 999;
+		for(int i = 0; i < count; i++)
+		{
+			if(moveBubbles[i].posY < lastBubblePosY)
+				lastBubblePosY = moveBubbles[i].posY; 
+		}
 		for(int i = 0; i < count; i++)
 		{
 			bubblesInAction++;
@@ -559,7 +569,8 @@ public class Game : MonoBehaviour {
 			yield return new WaitForEndOfFrame();
 		}
 		bubblesInAction --;
-		bubble.playMovedAnim ();
+		bool an = bubble.posY <= lastBubblePosY;
+		bubble.playMovedAnim (an);
 
 		if(bubblesInAction == 0)
 		{

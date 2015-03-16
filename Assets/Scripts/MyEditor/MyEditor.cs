@@ -16,6 +16,9 @@ public class MyEditor : MonoBehaviour {
 	public GameObject separatorEditorPrefab;
 	public Transform separatorList;
 
+	public GameObject bubbleEditorPrefab;
+	public GameObject bubbleList;
+
 	void Start () 
 	{
 		instantiateEditorCells ();
