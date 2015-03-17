@@ -14,7 +14,8 @@ public class Item : FieldItem {
 	public enum ItemType
 	{
 		key,
-		crystal
+		crystal,
+		gold
 	}
 
 	public override void SetType (Type tp, float size)

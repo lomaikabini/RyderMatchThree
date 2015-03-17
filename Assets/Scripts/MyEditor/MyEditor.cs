@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using System.Collections.Generic;
+using UnityEngine.UI;
 
 public class MyEditor : MonoBehaviour {
 
@@ -25,13 +26,17 @@ public class MyEditor : MonoBehaviour {
 	public RectTransform CellsContainer;
 	public RectTransform SeparatorContainer;
 
+	public InputField movesField;
+
 	private float bubbleSize;
 	private float bubblesOffset;
 	private int TableSize = 7;
 	private float BubblePadding = 5;
+	private int moves = 5;
 
 	private CellEditor[,] cells;
 	private BubbleEditor[,] bubbles;
+	private ItemEditor[,] items;
 	private SeparatorEditor[,] separatorsHorizontal;
 	private SeparatorEditor[,] separatorsVertical;
 
@@ -42,6 +47,7 @@ public class MyEditor : MonoBehaviour {
 	CellEditor insertCell;
 	SeparatorEditor insertSeparator;
 	BubbleEditor insertBubble;
+	ItemEditor insertItem;
 	public enum EditorState
 	{
 		insertItems,
@@ -55,10 +61,14 @@ public class MyEditor : MonoBehaviour {
 	void Start () 
 	{
 		instance = this;
+		InputField.SubmitEvent submitEvent = new InputField.SubmitEvent();
+		submitEvent.AddListener(SubmitMoves);
+		movesField.onEndEdit = submitEvent;
 		bubbles = new BubbleEditor[TableSize, TableSize];
 		cells = new CellEditor[TableSize, TableSize];
 		separatorsHorizontal = new SeparatorEditor[TableSize, TableSize];
 		separatorsVertical = new SeparatorEditor[TableSize, TableSize];
+		items = new ItemEditor[TableSize, TableSize];
 		instantiateEditorCells ();
 		instantiateEditorItems ();
 		instantiateEditorSeparators ();
@@ -66,6 +76,10 @@ public class MyEditor : MonoBehaviour {
 		instantiateEditorBubblesInGame ();
 		calculateBubblesValues ();
 		fillTableCells ();
+	}
+	private void SubmitMoves(string count)
+	{
+		moves = int.Parse(count);
 	}
 	void fillTableCells ()
 	{
@@ -89,7 +103,13 @@ public class MyEditor : MonoBehaviour {
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding) - bubblesOffset, 
 		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding) - bubblesOffset, 0f);
 	}
-
+	void insertItemInTable (ItemEditor bubble)
+	{
+		bubble.transform.SetParent (BubbleContainer.transform);
+		bubble.transform.localScale = new Vector3 (1f, 1f, 1f);
+		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding) - bubblesOffset, 
+		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding) - bubblesOffset, 0f);
+	}
 	void insertCellTable(CellEditor cell)
 	{
 		cell.transform.SetParent(CellsContainer.transform);
@@ -122,12 +142,12 @@ public class MyEditor : MonoBehaviour {
 	{
 		if(availableTypes.Exists(a=> a== b.type))
 		{
-			b.tx.text = "Not available";
+			b.tx.text = "--";
 			availableTypes.Remove(b.type);
 		}
 		else
 		{
-			b.tx.text = "Available";
+			b.tx.text = "++";
 			availableTypes.Add(b.type);
 		}
 	}
@@ -148,6 +168,12 @@ public class MyEditor : MonoBehaviour {
 		insertBubble = b;
 	}
 
+	public void OnMenuItemClick(ItemEditor it)
+	{
+		editorState = EditorState.insertItems;
+		insertItem = it;
+	}
+
 	public void OnBubbleClick (BubbleEditor c)
 	{
 		inputHeandler (c.posX, c.posY);
@@ -158,6 +184,11 @@ public class MyEditor : MonoBehaviour {
 		inputHeandler (c.posX, c.posY);
 	}
 
+	public void OnItemClick (ItemEditor itemEditor)
+	{
+		inputHeandler (itemEditor.posX, itemEditor.posY);
+	}
+
 	void inputHeandler(int posX, int posY)
 	{
 		if(editorState == EditorState.insertCells)
@@ -166,6 +197,11 @@ public class MyEditor : MonoBehaviour {
 			{
 				Destroy(bubbles[posX,posY].gameObject);
 				bubbles[posX,posY] = null;
+			}
+			if(items[posX,posY] != null)
+			{
+				Destroy(items[posX,posY].gameObject);
+				items[posX,posY] = null;
 			}
 			cells[posX,posY].SetType(insertCell.type,-1,insertCell.lives);
 		}
@@ -207,6 +243,11 @@ public class MyEditor : MonoBehaviour {
 			{
 				cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
+			if(items[posX,posY] != null)
+			{
+				Destroy(items[posX,posY].gameObject);
+				items[posX,posY] = null;
+			}
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
 			bubble.posX = posX;
@@ -216,7 +257,30 @@ public class MyEditor : MonoBehaviour {
 			bubble.tx.enabled = false;
 			insertBubbleInTable(bubble);
 		}
-		
+		if(editorState == EditorState.insertItems)
+		{
+			if(bubbles[posX,posY] != null)
+			{
+				Destroy(bubbles[posX,posY].gameObject);
+				bubbles[posX,posY] = null;
+			}
+			if(cells[posX,posY].type != Cell.Type.empty)
+			{
+				cells[posX,posY].SetType(Cell.Type.empty,-1,1);
+			}
+			if(items[posX,posY] != null)
+			{
+				Destroy(items[posX,posY].gameObject);
+				items[posX,posY] = null;
+			}
+			GameObject obj = Instantiate(itemEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			ItemEditor it = obj.GetComponent<ItemEditor>();
+			it.posX = posX;
+			it.posY = posY;
+			items[posX,posY] =  it;
+			it.SetType(insertItem.type,bubbleSize);
+			insertItemInTable(it);
+		}
 		if(editorState == EditorState.clear)
 		{
 			cells[posX,posY].SetType(Cell.Type.empty,-1,1);
@@ -277,7 +341,7 @@ public class MyEditor : MonoBehaviour {
 			obj.transform.localScale = new Vector3(1f,1f,1f);
 			bubEditor.type = type;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
-			bubEditor.tx.text = "Available";
+			bubEditor.tx.text = "++";
 			availableTypes.Add(type);
 		}
 	}
@@ -344,6 +408,8 @@ public class MyEditor : MonoBehaviour {
 			obj.transform.SetParent(itemList);
 			obj.transform.localScale = new Vector3(1f,1f,1f);
 			itemEditor.type = type;
+			itemEditor.isMenu = true;
+			ItemEditor.spritesIdle = itm.spritesIdle;
 			itemEditor.img.sprite = itm.spritesIdle.Find(a => {return a.name == "item_"+type.ToString()? a : null;});
 			itemEditor.tx.text = type.ToString();
 		}
