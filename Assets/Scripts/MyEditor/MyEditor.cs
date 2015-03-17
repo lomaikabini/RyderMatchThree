@@ -79,7 +79,7 @@ public class MyEditor : MonoBehaviour {
 			cell.posY = j;
 			cells[i,j] = cell;
 			insertCellTable(cell);
-			cell.SetType(Cell.Type.empty,bubbleSize);
+			cell.SetType(Cell.Type.empty,bubbleSize,1);
 		}
 	}
 	void insertBubbleInTable (BubbleEditor bubble)
@@ -167,7 +167,7 @@ public class MyEditor : MonoBehaviour {
 				Destroy(bubbles[posX,posY].gameObject);
 				bubbles[posX,posY] = null;
 			}
-			cells[posX,posY].SetType(insertCell.type);
+			cells[posX,posY].SetType(insertCell.type,-1,insertCell.lives);
 		}
 		if(editorState == EditorState.insertSeparators)
 		{
@@ -205,7 +205,7 @@ public class MyEditor : MonoBehaviour {
 			}
 			if(cells[posX,posY].type != Cell.Type.empty)
 			{
-				cells[posX,posY].SetType(Cell.Type.empty);
+				cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
@@ -219,7 +219,7 @@ public class MyEditor : MonoBehaviour {
 		
 		if(editorState == EditorState.clear)
 		{
-			cells[posX,posY].SetType(Cell.Type.empty);
+			cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			if(separatorsHorizontal[posX,posY] != null)
 			{
 				Destroy(separatorsHorizontal[posX,posY].gameObject);
@@ -237,7 +237,29 @@ public class MyEditor : MonoBehaviour {
 			}
 		}
 	}
-
+	public void OnBtnClearAllClick()
+	{
+		for(int i = 0; i < TableSize;i++)
+			for(int j = 0; j < TableSize;j++)
+		{
+			cells[i,j].SetType(Cell.Type.empty,-1,1);
+			if(separatorsHorizontal[i,j] != null)
+			{
+				Destroy(separatorsHorizontal[i,j].gameObject);
+				separatorsHorizontal[i,j] = null;
+			}
+			if(separatorsVertical[i,j] != null)
+			{
+				Destroy(separatorsVertical[i,j].gameObject);
+				separatorsVertical[i,j] = null;
+			}
+			if(bubbles[i,j] != null)
+			{
+				Destroy(bubbles[i,j].gameObject);
+				bubbles[i,j] = null;
+			}
+		}
+	}
 	public void OnBtnClearClick()
 	{
 		editorState = EditorState.clear;
@@ -341,13 +363,13 @@ public class MyEditor : MonoBehaviour {
 				obj.transform.localScale = new Vector3(1f,1f,1f);
 				cellEditor.img.sprite = cellInfo.sprites[cellInfo.sprites.Length -1 - j];
 				cellEditor.type = (Cell.Type)i;
-				cellEditor.lives = (cellInfo.sprites.Length - j);
+				cellEditor.lives = (j+1);
 				cellEditor.isMenu = true;
 				CellEditor.SpritesKit = c.SpritesKit;
 				if(cellInfo.destroyType == Cell.Sprites.DestroyType.notDestroy)
 					cellEditor.tx.text = "Not Destroy";
 				else
-					cellEditor.tx.text = "Lives: "+ (cellInfo.sprites.Length - j);
+					cellEditor.tx.text = "Lives: "+ (j+1);
 			}
 		}
 	}

@@ -31,8 +31,8 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
-	private float speedStart = 10f;
-	private float speedMax = 14f;
+	private float speedStart = 9f;
+	private float speedMax = 12f;
 	private float speedBoost = 3.5f;
 	private float bubbleSize;
 	private float bubblesOffset;

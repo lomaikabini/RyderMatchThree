@@ -31,13 +31,13 @@ public class CellEditor : MonoBehaviour,IPointerClickHandler {
 		else
 			MyEditor.instance.OnCellClick (this);
 	}
-	public void SetType (Cell.Type t,float size = -1)
+	public void SetType (Cell.Type t,float size,int health)
 	{
 		type = t;
 		Sprite sp;
 		Cell.Sprites kit = getKitByType (t);
-		lives = kit.sprites.Length;
-		sp = kit.sprites[0];
+		lives = health;
+		sp = kit.sprites[kit.sprites.Length - health];
 		img.sprite = sp;
 		if(size != -1)
 			rectTransform.sizeDelta = new Vector2 (size, size);

@@ -22,7 +22,8 @@ public class Cell : MonoBehaviour {
 	{
 		empty,
 		groundBlock,
-		block
+		block,
+		box
 	}
 
 	[Serializable]
