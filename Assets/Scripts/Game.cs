@@ -223,12 +223,24 @@ public class Game : MonoBehaviour {
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 0; j < TableSize; j++)
 			{
-				if(bubbles[i,j] == null) continue;
+				if(bubbles[i,j] != null)
 				BubblePool.Get().Push(bubbles[i,j].gameObject);
-			}
-
+				Destroy(cells[i,j].gameObject);
+				if(separatorsHorizontal[i,j]!=null)
+					Destroy(separatorsHorizontal[i,j].gameObject);
+				if(separatorsVertical[i,j]!= null)
+					Destroy(separatorsVertical[i,j].gameObject);
+		}
+		
+		cells = new Cell[TableSize, TableSize];
 		bubbles = new Bubble[TableSize,TableSize];
-		fillTableBubbles ();
+		separatorsHorizontal = new Separator[TableSize, TableSize];
+		separatorsVertical = new Separator[TableSize, TableSize];
+		fillTableCells ();
+		fillTableSeparators ();
+		gameState = GameState.InAction;
+		dropNewBalls ();
+		moveAllBubbles ();
 		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 
