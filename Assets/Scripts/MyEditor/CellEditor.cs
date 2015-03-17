@@ -11,9 +11,43 @@ public class CellEditor : MonoBehaviour,IPointerClickHandler {
 	public Cell.Type type;
 	[HideInInspector]
 	public int lives;
-	
+	public bool isMenu = false;
+	[HideInInspector]
+	public static Cell.Sprites[] SpritesKit;
+	[HideInInspector]
+	public int posX;
+	[HideInInspector]
+	public int posY;
+	[HideInInspector]
+	public RectTransform rectTransform;
+	void Awake()
+	{
+		rectTransform = GetComponent<RectTransform> ();
+	}
 	public void OnPointerClick (PointerEventData eventData)
 	{
-		Debug.Log(type + " " + lives);
+		if (isMenu)
+			MyEditor.instance.OnMenuCellClick (this);
+		else
+			MyEditor.instance.OnCellClick (this);
+	}
+	public void SetType (Cell.Type t,float size = -1)
+	{
+		type = t;
+		Sprite sp;
+		Cell.Sprites kit = getKitByType (t);
+		lives = kit.sprites.Length;
+		sp = kit.sprites[0];
+		img.sprite = sp;
+		if(size != -1)
+			rectTransform.sizeDelta = new Vector2 (size, size);
+	}
+	public Cell.Sprites getKitByType (Cell.Type t)
+	{
+		for(int i = 0; i < SpritesKit.Length; i++)
+		{
+			if(SpritesKit[i].type == t) return SpritesKit[i];
+		}
+		return default(Cell.Sprites);
 	}
 }
