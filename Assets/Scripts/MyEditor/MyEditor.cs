@@ -34,7 +34,8 @@ public class MyEditor : MonoBehaviour {
 
 	public RectTransform goalContainer;
 
-	public GameObject wizardsWrapper;
+	public GameObject wizardEditorPrefab;
+	public Transform wizardsWrapper;
 
 	private float bubbleSize;
 	private float bubblesOffset;
@@ -51,6 +52,7 @@ public class MyEditor : MonoBehaviour {
 	private Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
 	private Dictionary<string,int> goals = new Dictionary<string, int>();
 	private List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
+	private List<WizardEditor> wizards = new List<WizardEditor> ();
 
 	public static MyEditor instance;
 
@@ -94,6 +96,7 @@ public class MyEditor : MonoBehaviour {
 		instantiateEditorBubblesInGame ();
 		instantiateEditorBubblesDamage ();
 		instantiateEditorGoals ();
+		instantiateEditorWizards ();
 		calculateBubblesValues ();
 		fillTableCells ();
 	}
@@ -179,6 +182,7 @@ public class MyEditor : MonoBehaviour {
 			availableTypes.Add(b.type);
 		}
 	}
+
 	public void OnMenuCellClick(CellEditor c)
 	{
 		editorState = EditorState.insertCells;
@@ -398,6 +402,20 @@ public class MyEditor : MonoBehaviour {
 	{
 		editorState = EditorState.clear;
 	}
+
+	void instantiateEditorWizards ()
+	{
+		for(int i = 0; i < 8;i++)
+		{
+			GameObject obj = Instantiate(wizardEditorPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+			WizardEditor we = obj.GetComponent<WizardEditor>();
+			we.SetName(i);
+			obj.transform.SetParent(wizardsWrapper);
+			obj.transform.localScale = new Vector3(1f,1f,1f);
+			wizards.Add(we);
+		}
+	}
+
 	void instantiateEditorBubblesInGame ()
 	{
 		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();

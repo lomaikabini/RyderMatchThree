@@ -56,8 +56,6 @@ public abstract class FieldItem : MonoBehaviour {
 			}
 		} else
 			animator.Play ("Bounce", 0, 0f);
-
-		
 	}
 	
 	public void playChosedAnim()
