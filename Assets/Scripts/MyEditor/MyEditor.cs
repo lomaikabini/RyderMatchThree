@@ -34,6 +34,8 @@ public class MyEditor : MonoBehaviour {
 
 	public RectTransform goalContainer;
 
+	public GameObject wizardsWrapper;
+
 	private float bubbleSize;
 	private float bubblesOffset;
 	private int TableSize = 7;
