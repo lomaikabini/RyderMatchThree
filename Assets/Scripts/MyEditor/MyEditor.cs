@@ -113,8 +113,8 @@ public class MyEditor : MonoBehaviour {
 			GameObject obj = Instantiate(cellEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			CellEditor cell = obj.GetComponent<CellEditor>(); 
 			cell.tx.enabled = false;
-			cell.posX = i;
-			cell.posY = j;
+			cell.cellInfo.posX = i;
+			cell.cellInfo.posY = j;
 			levelEditor.cells[i,j] = cell;
 			insertCellTable(cell);
 			cell.SetType(Cell.Type.empty,bubbleSize,1);
@@ -138,8 +138,8 @@ public class MyEditor : MonoBehaviour {
 	{
 		cell.transform.SetParent(CellsContainer.transform);
 		cell.rectTransform.localScale = new Vector3 (1f, 1f, 1f);
-		cell.transform.localPosition = new Vector3 ((float)cell.posX * bubbleSize + ((float)(cell.posX) * BubblePadding)-bubblesOffset, 
-		                                            (float)cell.posY * bubbleSize + ((float)(cell.posY) * BubblePadding)-bubblesOffset, 0f);
+		cell.transform.localPosition = new Vector3 ((float)cell.cellInfo.posX * bubbleSize + ((float)(cell.cellInfo.posX) * BubblePadding)-bubblesOffset, 
+		                                            (float)cell.cellInfo.posY * bubbleSize + ((float)(cell.cellInfo.posY) * BubblePadding)-bubblesOffset, 0f);
 	}
 	void insertSeparatorTable(SeparatorEditor separ)
 	{
@@ -206,7 +206,7 @@ public class MyEditor : MonoBehaviour {
 
 	public void OnCellClick(CellEditor c)
 	{
-		inputHeandler (c.posX, c.posY);
+		inputHeandler (c.cellInfo.posX, c.cellInfo.posY);
 	}
 
 	public void OnItemClick (ItemEditor itemEditor)
@@ -270,7 +270,7 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.items[posX,posY].gameObject);
 				levelEditor.items[posX,posY] = null;
 			}
-			levelEditor.cells[posX,posY].SetType(insertCell.type,-1,insertCell.lives);
+			levelEditor.cells[posX,posY].SetType(insertCell.cellInfo.type,-1,insertCell.cellInfo.lives);
 		}
 		if(editorState == EditorState.insertSeparators)
 		{
@@ -306,7 +306,7 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.bubbles[posX,posY].gameObject);
 				levelEditor.bubbles[posX,posY] = null;
 			}
-			if(levelEditor.cells[posX,posY].type != Cell.Type.empty)
+			if(levelEditor.cells[posX,posY].cellInfo.type != Cell.Type.empty)
 			{
 				levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
@@ -331,7 +331,7 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.bubbles[posX,posY].gameObject);
 				levelEditor.bubbles[posX,posY] = null;
 			}
-			if(levelEditor.cells[posX,posY].type != Cell.Type.empty)
+			if(levelEditor.cells[posX,posY].cellInfo.type != Cell.Type.empty)
 			{
 				levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
@@ -393,7 +393,7 @@ public class MyEditor : MonoBehaviour {
 	}
 	public void OnBtnClearClick()
 	{
-		Debug.Log (JsonMapper.ToJson (levelEditor));
+		levelEditor.Save ();
 		editorState = EditorState.clear;
 	}
 
@@ -564,8 +564,8 @@ public class MyEditor : MonoBehaviour {
 				obj.transform.SetParent(cellList);
 				obj.transform.localScale = new Vector3(1f,1f,1f);
 				cellEditor.img.sprite = cellInfo.sprites[cellInfo.sprites.Length -1 - j];
-				cellEditor.type = (Cell.Type)i;
-				cellEditor.lives = (j+1);
+				cellEditor.cellInfo.type = (Cell.Type)i;
+				cellEditor.cellInfo.lives = (j+1);
 				cellEditor.isMenu = true;
 				CellEditor.SpritesKit = c.SpritesKit;
 				if(cellInfo.destroyType == Cell.Sprites.DestroyType.notDestroy)

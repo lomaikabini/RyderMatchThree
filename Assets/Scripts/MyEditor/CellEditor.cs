@@ -7,17 +7,18 @@ public class CellEditor : MonoBehaviour,IPointerClickHandler {
 
 	public Image img;
 	public Text tx;
-	[HideInInspector]
-	public Cell.Type type;
-	[HideInInspector]
-	public int lives;
+//	[HideInInspector]
+//	public Cell.Type type;
+//	[HideInInspector]
+//	public int lives;
 	public bool isMenu = false;
 	[HideInInspector]
 	public static Cell.Sprites[] SpritesKit;
-	[HideInInspector]
-	public int posX;
-	[HideInInspector]
-	public int posY;
+//	[HideInInspector]
+//	public int posX;
+//	[HideInInspector]
+//	public int posY;
+	public CellEssence cellInfo = new CellEssence();
 	[HideInInspector]
 	public RectTransform rectTransform;
 	void Awake()
@@ -33,10 +34,10 @@ public class CellEditor : MonoBehaviour,IPointerClickHandler {
 	}
 	public void SetType (Cell.Type t,float size,int health)
 	{
-		type = t;
+		cellInfo.type = t;
 		Sprite sp;
 		Cell.Sprites kit = getKitByType (t);
-		lives = health;
+		cellInfo.lives = health;
 		sp = kit.sprites[kit.sprites.Length - health];
 		img.sprite = sp;
 		if(size != -1)
