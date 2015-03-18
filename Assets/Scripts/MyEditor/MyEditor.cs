@@ -3,7 +3,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using UnityEngine.UI;
-
+using LitJson;
 public class MyEditor : MonoBehaviour {
 
 	public GameObject cellPrefab;
@@ -41,19 +41,19 @@ public class MyEditor : MonoBehaviour {
 	private float bubblesOffset;
 	private int TableSize = 7;
 	private float BubblePadding = 5;
-	private int moves = 5;
-	private int curentLvl = 1;
 
-	private CellEditor[,] cells;
-	private BubbleEditor[,] bubbles;
-	private ItemEditor[,] items;
-	private SeparatorEditor[,] separatorsHorizontal;
-	private SeparatorEditor[,] separatorsVertical;
-	private Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
-	private Dictionary<string,int> goals = new Dictionary<string, int>();
-	private List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
-	private List<WizardEditor> wizards = new List<WizardEditor> ();
-
+//	private int moves = 5;
+//	private int curentLvl = 1;
+//	private CellEditor[,] cells;
+//	private BubbleEditor[,] bubbles;
+//	private ItemEditor[,] items;
+//	private SeparatorEditor[,] separatorsHorizontal;
+//	private SeparatorEditor[,] separatorsVertical;
+//	private Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
+//	private Dictionary<string,int> goals = new Dictionary<string, int>();
+//	private List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
+//	private List<WizardEditor> wizards = new List<WizardEditor> ();
+	private LevelEditor levelEditor;
 	public static MyEditor instance;
 
 	EditorState editorState = EditorState.free;
@@ -73,8 +73,8 @@ public class MyEditor : MonoBehaviour {
 
 	void Start () 
 	{
+		levelEditor = new LevelEditor (TableSize);
 		instance = this;
-
 		InputField.SubmitEvent submitEvent = new InputField.SubmitEvent();
 		submitEvent.AddListener(SubmitMoves);
 		movesField.onEndEdit = submitEvent;
@@ -83,12 +83,6 @@ public class MyEditor : MonoBehaviour {
 		submitEvent2.AddListener(OnLvlChanged);
 		lvlField.onEndEdit = submitEvent2;
 
-
-		bubbles = new BubbleEditor[TableSize, TableSize];
-		cells = new CellEditor[TableSize, TableSize];
-		separatorsHorizontal = new SeparatorEditor[TableSize, TableSize];
-		separatorsVertical = new SeparatorEditor[TableSize, TableSize];
-		items = new ItemEditor[TableSize, TableSize];
 		instantiateEditorCells ();
 		instantiateEditorItems ();
 		instantiateEditorSeparators ();
@@ -102,14 +96,13 @@ public class MyEditor : MonoBehaviour {
 	}
 	private void SubmitMoves(string count)
 	{
-		moves = int.Parse(count);
+		levelEditor.moves = int.Parse(count);
 	}
 	public void OnLvlChanged(string lvl)
 	{
 		if(!lvl.Equals(""))
 		{
-			curentLvl = int.Parse(lvl);
-			Debug.Log(curentLvl);
+			levelEditor.curentLvl = int.Parse(lvl);
 		}
 	}
 	void fillTableCells ()
@@ -122,7 +115,7 @@ public class MyEditor : MonoBehaviour {
 			cell.tx.enabled = false;
 			cell.posX = i;
 			cell.posY = j;
-			cells[i,j] = cell;
+			levelEditor.cells[i,j] = cell;
 			insertCellTable(cell);
 			cell.SetType(Cell.Type.empty,bubbleSize,1);
 		}
@@ -171,15 +164,15 @@ public class MyEditor : MonoBehaviour {
 	}
 	public void BubbleInGameClick(BubbleInGameEditor b)
 	{
-		if(availableTypes.Exists(a=> a== b.type))
+		if(levelEditor.availableTypes.Exists(a=> a== b.type))
 		{
 			b.tx.text = "--";
-			availableTypes.Remove(b.type);
+			levelEditor.availableTypes.Remove(b.type);
 		}
 		else
 		{
 			b.tx.text = "++";
-			availableTypes.Add(b.type);
+			levelEditor.availableTypes.Add(b.type);
 		}
 	}
 
@@ -223,42 +216,42 @@ public class MyEditor : MonoBehaviour {
 
 	public void OnDamageChanged(BubbleEditorDamage b, int damage)
 	{
-		bubblesDamages [b.type] = damage;
+		levelEditor.bubblesDamages [b.type] = damage;
 	}
 
 	public void OnGoalChanged(BubbleEditorDamage b, int count)
 	{
 		if(b.isCell)
 		{
-			if(goals.ContainsKey(b.cellType.ToString()))
+			if(levelEditor.goals.ContainsKey(b.cellType.ToString()))
 			{
-				goals[b.cellType.ToString()] = count;
+				levelEditor.goals[b.cellType.ToString()] = count;
 			}
 			else
 			{
-				goals.Add(b.cellType.ToString(),count);
+				levelEditor.goals.Add(b.cellType.ToString(),count);
 			}
 		}
 		else if(b.type == FieldItem.Type.item)
 		{
-			if(goals.ContainsKey(b.itemType.ToString()))
+			if(levelEditor.goals.ContainsKey(b.itemType.ToString()))
 			{
-				goals[b.itemType.ToString()] = count;
+				levelEditor.goals[b.itemType.ToString()] = count;
 			}
 			else
 			{
-				goals.Add(b.itemType.ToString(),count);
+				levelEditor.goals.Add(b.itemType.ToString(),count);
 			}
 		}
 		else
 		{
-			if(goals.ContainsKey(b.type.ToString()))
+			if(levelEditor.goals.ContainsKey(b.type.ToString()))
 			{
-				goals[b.type.ToString()] =  count;
+				levelEditor.goals[b.type.ToString()] =  count;
 			}
 			else
 			{
-				goals.Add(b.type.ToString(),count);
+				levelEditor.goals.Add(b.type.ToString(),count);
 			}
 		}
 	}
@@ -267,17 +260,17 @@ public class MyEditor : MonoBehaviour {
 	{
 		if(editorState == EditorState.insertCells)
 		{
-			if(bubbles[posX,posY] != null)
+			if(levelEditor.bubbles[posX,posY] != null)
 			{
-				Destroy(bubbles[posX,posY].gameObject);
-				bubbles[posX,posY] = null;
+				Destroy(levelEditor.bubbles[posX,posY].gameObject);
+				levelEditor.bubbles[posX,posY] = null;
 			}
-			if(items[posX,posY] != null)
+			if(levelEditor.items[posX,posY] != null)
 			{
-				Destroy(items[posX,posY].gameObject);
-				items[posX,posY] = null;
+				Destroy(levelEditor.items[posX,posY].gameObject);
+				levelEditor.items[posX,posY] = null;
 			}
-			cells[posX,posY].SetType(insertCell.type,-1,insertCell.lives);
+			levelEditor.cells[posX,posY].SetType(insertCell.type,-1,insertCell.lives);
 		}
 		if(editorState == EditorState.insertSeparators)
 		{
@@ -288,19 +281,19 @@ public class MyEditor : MonoBehaviour {
 			separ.posY = posY;
 			if(insertSeparator.type == Separator.Type.vertical)
 			{
-				if(separatorsVertical[separ.posX,separ.posY] != null)
+				if(levelEditor.separatorsVertical[separ.posX,separ.posY] != null)
 				{
-					Destroy(separatorsVertical[separ.posX,separ.posY].gameObject);
+					Destroy(levelEditor.separatorsVertical[separ.posX,separ.posY].gameObject);
 				}
-				separatorsVertical[separ.posX,separ.posY] = separ;
+				levelEditor.separatorsVertical[separ.posX,separ.posY] = separ;
 			}
 			else
 			{
-				if(separatorsHorizontal[separ.posX,separ.posY] != null)
+				if(levelEditor.separatorsHorizontal[separ.posX,separ.posY] != null)
 				{
-					Destroy(separatorsHorizontal[separ.posX,separ.posY].gameObject);
+					Destroy(levelEditor.separatorsHorizontal[separ.posX,separ.posY].gameObject);
 				}
-				separatorsHorizontal[separ.posX,separ.posY] = separ;
+				levelEditor.separatorsHorizontal[separ.posX,separ.posY] = separ;
 			}
 			separ.SetType(insertSeparator.type,insertSeparator.destroyType,bubbleSize,insertSeparator.lives);
 			insertSeparatorTable(separ);
@@ -308,70 +301,70 @@ public class MyEditor : MonoBehaviour {
 		
 		if(editorState == EditorState.insertBubbles)
 		{
-			if(bubbles[posX,posY] != null)
+			if(levelEditor.bubbles[posX,posY] != null)
 			{
-				Destroy(bubbles[posX,posY].gameObject);
-				bubbles[posX,posY] = null;
+				Destroy(levelEditor.bubbles[posX,posY].gameObject);
+				levelEditor.bubbles[posX,posY] = null;
 			}
-			if(cells[posX,posY].type != Cell.Type.empty)
+			if(levelEditor.cells[posX,posY].type != Cell.Type.empty)
 			{
-				cells[posX,posY].SetType(Cell.Type.empty,-1,1);
+				levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
-			if(items[posX,posY] != null)
+			if(levelEditor.items[posX,posY] != null)
 			{
-				Destroy(items[posX,posY].gameObject);
-				items[posX,posY] = null;
+				Destroy(levelEditor.items[posX,posY].gameObject);
+				levelEditor.items[posX,posY] = null;
 			}
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
 			bubble.posX = posX;
 			bubble.posY = posY;
-			bubbles[posX,posY] = bubble;
+			levelEditor.bubbles[posX,posY] = bubble;
 			bubble.SetType (insertBubble.type, bubbleSize);
 			bubble.tx.enabled = false;
 			insertBubbleInTable(bubble);
 		}
 		if(editorState == EditorState.insertItems)
 		{
-			if(bubbles[posX,posY] != null)
+			if(levelEditor.bubbles[posX,posY] != null)
 			{
-				Destroy(bubbles[posX,posY].gameObject);
-				bubbles[posX,posY] = null;
+				Destroy(levelEditor.bubbles[posX,posY].gameObject);
+				levelEditor.bubbles[posX,posY] = null;
 			}
-			if(cells[posX,posY].type != Cell.Type.empty)
+			if(levelEditor.cells[posX,posY].type != Cell.Type.empty)
 			{
-				cells[posX,posY].SetType(Cell.Type.empty,-1,1);
+				levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
 			}
-			if(items[posX,posY] != null)
+			if(levelEditor.items[posX,posY] != null)
 			{
-				Destroy(items[posX,posY].gameObject);
-				items[posX,posY] = null;
+				Destroy(levelEditor.items[posX,posY].gameObject);
+				levelEditor.items[posX,posY] = null;
 			}
 			GameObject obj = Instantiate(itemEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			ItemEditor it = obj.GetComponent<ItemEditor>();
 			it.posX = posX;
 			it.posY = posY;
-			items[posX,posY] =  it;
+			levelEditor.items[posX,posY] =  it;
 			it.SetType(insertItem.type,bubbleSize);
 			insertItemInTable(it);
 		}
 		if(editorState == EditorState.clear)
 		{
-			cells[posX,posY].SetType(Cell.Type.empty,-1,1);
-			if(separatorsHorizontal[posX,posY] != null)
+			levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
+			if(levelEditor.separatorsHorizontal[posX,posY] != null)
 			{
-				Destroy(separatorsHorizontal[posX,posY].gameObject);
-				separatorsHorizontal[posX,posY] = null;
+				Destroy(levelEditor.separatorsHorizontal[posX,posY].gameObject);
+				levelEditor.separatorsHorizontal[posX,posY] = null;
 			}
-			if(separatorsVertical[posX,posY] != null)
+			if(levelEditor.separatorsVertical[posX,posY] != null)
 			{
-				Destroy(separatorsVertical[posX,posY].gameObject);
-				separatorsVertical[posX,posY] = null;
+				Destroy(levelEditor.separatorsVertical[posX,posY].gameObject);
+				levelEditor.separatorsVertical[posX,posY] = null;
 			}
-			if(bubbles[posX,posY] != null)
+			if(levelEditor.bubbles[posX,posY] != null)
 			{
-				Destroy(bubbles[posX,posY].gameObject);
-				bubbles[posX,posY] = null;
+				Destroy(levelEditor.bubbles[posX,posY].gameObject);
+				levelEditor.bubbles[posX,posY] = null;
 			}
 		}
 	}
@@ -380,26 +373,27 @@ public class MyEditor : MonoBehaviour {
 		for(int i = 0; i < TableSize;i++)
 			for(int j = 0; j < TableSize;j++)
 		{
-			cells[i,j].SetType(Cell.Type.empty,-1,1);
-			if(separatorsHorizontal[i,j] != null)
+			levelEditor.cells[i,j].SetType(Cell.Type.empty,-1,1);
+			if(levelEditor.separatorsHorizontal[i,j] != null)
 			{
-				Destroy(separatorsHorizontal[i,j].gameObject);
-				separatorsHorizontal[i,j] = null;
+				Destroy(levelEditor.separatorsHorizontal[i,j].gameObject);
+				levelEditor.separatorsHorizontal[i,j] = null;
 			}
-			if(separatorsVertical[i,j] != null)
+			if(levelEditor.separatorsVertical[i,j] != null)
 			{
-				Destroy(separatorsVertical[i,j].gameObject);
-				separatorsVertical[i,j] = null;
+				Destroy(levelEditor.separatorsVertical[i,j].gameObject);
+				levelEditor.separatorsVertical[i,j] = null;
 			}
-			if(bubbles[i,j] != null)
+			if(levelEditor.bubbles[i,j] != null)
 			{
-				Destroy(bubbles[i,j].gameObject);
-				bubbles[i,j] = null;
+				Destroy(levelEditor.bubbles[i,j].gameObject);
+				levelEditor.bubbles[i,j] = null;
 			}
 		}
 	}
 	public void OnBtnClearClick()
 	{
+		Debug.Log (JsonMapper.ToJson (levelEditor));
 		editorState = EditorState.clear;
 	}
 
@@ -412,7 +406,7 @@ public class MyEditor : MonoBehaviour {
 			we.SetName(i);
 			obj.transform.SetParent(wizardsWrapper);
 			obj.transform.localScale = new Vector3(1f,1f,1f);
-			wizards.Add(we);
+			levelEditor.wizards.Add(we);
 		}
 	}
 
@@ -430,7 +424,7 @@ public class MyEditor : MonoBehaviour {
 			bubEditor.type = type;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
 			bubEditor.tx.text = "++";
-			availableTypes.Add(type);
+			levelEditor.availableTypes.Add(type);
 		}
 	}
 
@@ -502,7 +496,7 @@ public class MyEditor : MonoBehaviour {
 			obj.transform.localScale = new Vector3(1f,1f,1f);
 			bubEditor.type = type;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
-			bubblesDamages.Add(type,0);
+			levelEditor.bubblesDamages.Add(type,0);
 		}
 	}
 
