@@ -28,6 +28,11 @@ public class MyEditor : MonoBehaviour {
 
 	public InputField movesField;
 
+	public GameObject bubbleDamagePrefab;
+	public RectTransform bubbleDamageContainer;
+
+	public RectTransform goalContainer;
+
 	private float bubbleSize;
 	private float bubblesOffset;
 	private int TableSize = 7;
@@ -39,8 +44,10 @@ public class MyEditor : MonoBehaviour {
 	private ItemEditor[,] items;
 	private SeparatorEditor[,] separatorsHorizontal;
 	private SeparatorEditor[,] separatorsVertical;
+	private Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
+	private Dictionary<string,int> goals = new Dictionary<string, int>();
+	private List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
 
-	List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
 	public static MyEditor instance;
 
 	EditorState editorState = EditorState.free;
@@ -74,6 +81,8 @@ public class MyEditor : MonoBehaviour {
 		instantiateEditorSeparators ();
 		instantiateEditorBubbles ();
 		instantiateEditorBubblesInGame ();
+		instantiateEditorBubblesDamage ();
+		instantiateEditorGoals ();
 		calculateBubblesValues ();
 		fillTableCells ();
 	}
@@ -187,6 +196,48 @@ public class MyEditor : MonoBehaviour {
 	public void OnItemClick (ItemEditor itemEditor)
 	{
 		inputHeandler (itemEditor.posX, itemEditor.posY);
+	}
+
+	public void OnDamageChanged(BubbleEditorDamage b, int damage)
+	{
+		bubblesDamages [b.type] = damage;
+	}
+
+	public void OnGoalChanged(BubbleEditorDamage b, int count)
+	{
+		if(b.isCell)
+		{
+			if(goals.ContainsKey(b.cellType.ToString()))
+			{
+				goals[b.cellType.ToString()] = count;
+			}
+			else
+			{
+				goals.Add(b.cellType.ToString(),count);
+			}
+		}
+		else if(b.type == FieldItem.Type.item)
+		{
+			if(goals.ContainsKey(b.itemType.ToString()))
+			{
+				goals[b.itemType.ToString()] = count;
+			}
+			else
+			{
+				goals.Add(b.itemType.ToString(),count);
+			}
+		}
+		else
+		{
+			if(goals.ContainsKey(b.type.ToString()))
+			{
+				goals[b.type.ToString()] =  count;
+			}
+			else
+			{
+				goals.Add(b.type.ToString(),count);
+			}
+		}
 	}
 
 	void inputHeandler(int posX, int posY)
@@ -361,6 +412,60 @@ public class MyEditor : MonoBehaviour {
 			bubEditor.type = type;
 			bubEditor.isMenu = true;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
+		}
+	}
+
+	void instantiateEditorGoals ()
+	{
+		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
+		for(int i = 0;i < Enum.GetNames(typeof(Bubble.Type)).Length-1;i++)
+		{
+			Bubble.Type type = (Bubble.Type)i;
+			GameObject obj = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+			BubbleEditorDamage bubEditor = obj.GetComponent<BubbleEditorDamage>();
+			BubbleEditor.bubbleImages = bubble.bubbleImages;
+			obj.transform.SetParent(goalContainer);
+			obj.transform.localScale = new Vector3(1f,1f,1f);
+			bubEditor.type = type;
+			bubEditor.isGoal = true;
+			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
+		}
+		Item itm = bubblePrefab.GetComponent<Item> ();
+		GameObject o = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+		BubbleEditorDamage bEditor = o.GetComponent<BubbleEditorDamage>();
+		o.transform.SetParent(goalContainer);
+		o.transform.localScale = new Vector3(1f,1f,1f);
+		bEditor.type = FieldItem.Type.item;
+		bEditor.itemType = Item.ItemType.gold;
+		bEditor.isGoal = true;
+		bEditor.img.sprite = itm.spritesIdle.Find(i => {return i.name == "item_"+Item.ItemType.gold.ToString()? i : null;});
+
+		Cell cell = cellPrefab.GetComponent<Cell> ();
+		GameObject ob = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+		BubbleEditorDamage baEditor = ob.GetComponent<BubbleEditorDamage>();
+		ob.transform.SetParent(goalContainer);
+		ob.transform.localScale = new Vector3(1f,1f,1f);
+		baEditor.isGoal = true;
+		baEditor.isCell = true;
+		baEditor.cellType = Cell.Type.box;
+		baEditor.img.sprite = cell.getKitByType (Cell.Type.box).sprites [0];
+
+	}
+
+	void instantiateEditorBubblesDamage ()
+	{
+		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
+		for(int i = 0;i < Enum.GetNames(typeof(Bubble.Type)).Length-1;i++)
+		{
+			Bubble.Type type = (Bubble.Type)i;
+			GameObject obj = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+			BubbleEditorDamage bubEditor = obj.GetComponent<BubbleEditorDamage>();
+			BubbleEditor.bubbleImages = bubble.bubbleImages;
+			obj.transform.SetParent(bubbleDamageContainer);
+			obj.transform.localScale = new Vector3(1f,1f,1f);
+			bubEditor.type = type;
+			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
+			bubblesDamages.Add(type,0);
 		}
 	}
 
