@@ -27,6 +27,7 @@ public class MyEditor : MonoBehaviour {
 	public RectTransform SeparatorContainer;
 
 	public InputField movesField;
+	public InputField lvlField;
 
 	public GameObject bubbleDamagePrefab;
 	public RectTransform bubbleDamageContainer;
@@ -38,6 +39,7 @@ public class MyEditor : MonoBehaviour {
 	private int TableSize = 7;
 	private float BubblePadding = 5;
 	private int moves = 5;
+	private int curentLvl = 1;
 
 	private CellEditor[,] cells;
 	private BubbleEditor[,] bubbles;
@@ -68,9 +70,16 @@ public class MyEditor : MonoBehaviour {
 	void Start () 
 	{
 		instance = this;
+
 		InputField.SubmitEvent submitEvent = new InputField.SubmitEvent();
 		submitEvent.AddListener(SubmitMoves);
 		movesField.onEndEdit = submitEvent;
+
+		InputField.SubmitEvent submitEvent2 = new InputField.SubmitEvent();
+		submitEvent2.AddListener(OnLvlChanged);
+		lvlField.onEndEdit = submitEvent2;
+
+
 		bubbles = new BubbleEditor[TableSize, TableSize];
 		cells = new CellEditor[TableSize, TableSize];
 		separatorsHorizontal = new SeparatorEditor[TableSize, TableSize];
@@ -89,6 +98,14 @@ public class MyEditor : MonoBehaviour {
 	private void SubmitMoves(string count)
 	{
 		moves = int.Parse(count);
+	}
+	public void OnLvlChanged(string lvl)
+	{
+		if(!lvl.Equals(""))
+		{
+			curentLvl = int.Parse(lvl);
+			Debug.Log(curentLvl);
+		}
 	}
 	void fillTableCells ()
 	{
