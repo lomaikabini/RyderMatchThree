@@ -24,6 +24,8 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 
 	public override void SetType(Type tp,float size)
 	{
+		this.enabled = true;
+		this.GetComponent<Item> ().enabled = false;
 		type = tp;
 		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
 		if(sprite == null)

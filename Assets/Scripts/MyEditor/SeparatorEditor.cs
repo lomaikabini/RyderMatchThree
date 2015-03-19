@@ -22,6 +22,7 @@ public class SeparatorEditor : MonoBehaviour,IPointerClickHandler {
 	public void SetType(Separator.Type t,Separator.DestroyType dT, float size = -1, int health = 1)
 	{
 		separatorConfig.type = t;
+		separatorConfig.destroyType = dT;
 		Separator.Sprites kit = GetKitByType (dT);
 		separatorConfig.lives = health;
 		img.sprite = kit.sprites [kit.sprites.Length - separatorConfig.lives];

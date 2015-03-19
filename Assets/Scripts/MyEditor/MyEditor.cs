@@ -115,8 +115,8 @@ public class MyEditor : MonoBehaviour {
 	{
 		bubble.transform.SetParent (BubbleContainer.transform);
 		bubble.transform.localScale = new Vector3 (1f, 1f, 1f);
-		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding) - bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding) - bubblesOffset, 0f);
+		bubble.transform.localPosition = new Vector3 ((float)bubble.bubbleConfig.posX * bubbleSize + ((float)(bubble.bubbleConfig.posX) * BubblePadding) - bubblesOffset, 
+		                                              (float)bubble.bubbleConfig.posY * bubbleSize + ((float)(bubble.bubbleConfig.posY) * BubblePadding) - bubblesOffset, 0f);
 	}
 	void insertItemInTable (ItemEditor bubble)
 	{
@@ -192,7 +192,7 @@ public class MyEditor : MonoBehaviour {
 
 	public void OnBubbleClick (BubbleEditor c)
 	{
-		inputHeandler (c.posX, c.posY);
+		inputHeandler (c.bubbleConfig.posX, c.bubbleConfig.posY);
 	}
 
 	public void OnCellClick(CellEditor c)
@@ -308,10 +308,10 @@ public class MyEditor : MonoBehaviour {
 			}
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
-			bubble.posX = posX;
-			bubble.posY = posY;
+			bubble.bubbleConfig.posX = posX;
+			bubble.bubbleConfig.posY = posY;
 			levelEditor.bubbles[posX,posY] = bubble;
-			bubble.SetType (insertBubble.type, bubbleSize);
+			bubble.SetType (insertBubble.bubbleConfig.type, bubbleSize);
 			bubble.tx.enabled = false;
 			insertBubbleInTable(bubble);
 		}
@@ -357,6 +357,11 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.bubbles[posX,posY].gameObject);
 				levelEditor.bubbles[posX,posY] = null;
 			}
+			if(levelEditor.items[posX,posY] != null)
+			{
+				Destroy(levelEditor.items[posX,posY].gameObject);
+				levelEditor.items[posX,posY] = null;
+			}
 		}
 	}
 	public void OnBtnClearAllClick()
@@ -379,6 +384,11 @@ public class MyEditor : MonoBehaviour {
 			{
 				Destroy(levelEditor.bubbles[i,j].gameObject);
 				levelEditor.bubbles[i,j] = null;
+			}
+			if(levelEditor.items[i,j] != null)
+			{
+				Destroy(levelEditor.items[i,j].gameObject);
+				levelEditor.items[i,j] = null;
 			}
 		}
 	}
@@ -443,7 +453,7 @@ public class MyEditor : MonoBehaviour {
 			obj.GetComponent<BubbleInGameEditor>().enabled = false;
 			obj.transform.SetParent(bubbleList);
 			obj.transform.localScale = new Vector3(1f,1f,1f);
-			bubEditor.type = type;
+			bubEditor.bubbleConfig.type = type;
 			bubEditor.isMenu = true;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
 		}

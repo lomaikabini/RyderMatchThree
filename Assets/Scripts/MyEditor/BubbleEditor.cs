@@ -8,15 +8,10 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	
 	public Image img;
 	public Text tx;
-	[HideInInspector]
-	public FieldItem.Type type;
 	public static List<Sprite> bubbleImages;
 	[HideInInspector]
 	public RectTransform rectTransform;
-	[HideInInspector]
-	public int posX;
-	[HideInInspector]
-	public int posY;
+	public BubbleEssence bubbleConfig = new BubbleEssence ();
 	public bool isMenu = false;
 
 	void Awake () 
@@ -34,8 +29,8 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	}
 	public void SetType(Bubble.Type tp,float size)
 	{
-		type = tp;
-		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
+		bubbleConfig.type = tp;
+		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+bubbleConfig.type.ToString()? i : null;});
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;

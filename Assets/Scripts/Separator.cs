@@ -50,6 +50,7 @@ public class Separator : MonoBehaviour {
 		type = t;
 		kit = GetKitByType (dT);
 		lives = health;
+		Debug.Log (kit.sprites[0].name);
 		img.sprite = kit.sprites [kit.sprites.Length - lives];
 		if(size != -1)
 			rectTransform.sizeDelta = new Vector2 (rectTransform.sizeDelta.x, size);

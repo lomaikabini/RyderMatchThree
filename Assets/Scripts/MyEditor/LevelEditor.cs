@@ -37,6 +37,8 @@ public class LevelEditor
 		public int curentLvl = 1;
 		public List<CellEssence> cells = new List<CellEssence>();
 		public List<SeparatorEssence> separators = new List<SeparatorEssence> ();
+		public List<BubbleEssence> bubbles = new List<BubbleEssence> ();
+		public List<ItemEssence> items = new List<ItemEssence> ();
 		public List<BubbleDamageEssence> bubblesDamages = new List<BubbleDamageEssence>();
 		public Dictionary<string,int> goals = new Dictionary<string, int>();
 		public List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
@@ -54,6 +56,10 @@ public class LevelEditor
 					separators.Add(conf.separatorsHorizontal[i,j].separatorConfig);
 				if(conf.separatorsVertical[i,j]!= null)
 					separators.Add(conf.separatorsVertical[i,j].separatorConfig);
+				if(conf.bubbles[i,j] != null)
+					bubbles.Add(conf.bubbles[i,j].bubbleConfig);
+				if(conf.items[i,j] != null)
+					items.Add(conf.items[i,j].itemConfig);
 			}
 			for(int i =0; i < conf.wizards.Count; i++)
 			{

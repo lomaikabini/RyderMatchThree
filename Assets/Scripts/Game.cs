@@ -70,7 +70,7 @@ public class Game : MonoBehaviour {
 	{
 		gameState = GameState.free;
 		cells = new Cell[TableSize, TableSize];
-		bubbles = new Bubble[TableSize,TableSize];
+		bubbles = new FieldItem[TableSize,TableSize];
 		separatorsHorizontal = new Separator[TableSize, TableSize];
 		separatorsVertical = new Separator[TableSize, TableSize];
 		BubblePool.Get ().Initialize (TableSize);
@@ -78,9 +78,6 @@ public class Game : MonoBehaviour {
 		calculateBubblesValues ();
 		fillEnvironment ();
 		buildLevelFromFile ();
-//		fillTableCells ();
-//		fillTableSeparators ();
-//		gameState = GameState.InAction;
 //		dropNewBalls ();
 //		moveAllBubbles ();
 	}
@@ -98,8 +95,42 @@ public class Game : MonoBehaviour {
 			insertCellTable(cell);
 			cell.SetType(config.cells[i].type,bubbleSize+2f,config.cells[i].lives);
 		}
+		for(int i = 0; i < config.separators.Count;i++)
+		{
+			GameObject obj = Instantiate(separatorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Separator separ = obj.GetComponent<Separator>(); 
+			separ.posX = config.separators[i].posX;
+			separ.posY = config.separators[i].posY;
+			if(config.separators[i].type == Separator.Type.vertical)
+				separatorsVertical[separ.posX,separ.posY] = separ;
+			else
+				separatorsHorizontal[separ.posX,separ.posY] = separ;
+			separ.SetType(config.separators[i].type,config.separators[i].destroyType,bubbleSize,config.separators[i].lives);
+			insertSeparatorTable(separ);
+		}
+		for(int i =0; i < config.bubbles.Count;i++)
+		{
+			GameObject obj = BubblePool.Get().Pull();
+			Bubble bubble = obj.GetComponent<Bubble>(); 
+			bubble.posX = config.bubbles[i].posX;
+			bubble.posY = config.bubbles[i].posY;
+			bubbles[bubble.posX,bubble.posY] = bubble;
+			bubble.SetType(config.bubbles[i].type,bubbleSize);
+			insertBubbleInTable(bubble,false);
+		}
+		for(int i = 0; i < config.items.Count;i++)
+		{
+			GameObject obj = BubblePool.Get().Pull();
+			Item itm = obj.GetComponent<Item>();
+			itm.posX = config.items[i].posX;
+			itm.posY = config.items[i].posY;
+			bubbles[itm.posX,itm.posY] = itm;
+			itm.itemType = config.items[i].type;
+			itm.SetType(FieldItem.Type.item,bubbleSize);
+			insertItemInTable(itm);
+		}
 	}
-
+	
 	public static Game Get()
 	{
 		return instance;
@@ -731,6 +762,7 @@ public class Game : MonoBehaviour {
 					if(positions.Count > 0)
 					{
 						Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
+						bubble.enabled = true;
 						bubble.transform.SetParent(BubbleContainer.transform);
 						bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length-1)), bubbleSize);
 						bubble.transform.localPosition = new Vector3 ((float)(i) * bubbleSize + ((float)(i) * BubblePadding)-bubblesOffset, 
@@ -1105,21 +1137,20 @@ public class Game : MonoBehaviour {
 		                                              (float)cell.posY * bubbleSize + ((float)(cell.posY) * BubblePadding)-bubblesOffset, 0f);
 	}
 
-	void insertBubbleInTable (Bubble bubble)
+	void insertItemInTable(FieldItem bubble)
 	{
 		bubble.transform.SetParent(BubbleContainer.transform);
-		bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
 		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
-//		int id = -1;
-//		while(checkLineMatch(bubble.posX,0,0,1) || checkLineMatch(0, bubble.posY,1,0))
-//		{
-//			if(id < Enum.GetNames(typeof(Bubble.Type)).Length - 1)
-//				id++;
-//			else
-//				id = 0;
-//			bubble.SetType ((Bubble.Type)id, bubbleSize);
-//		}
+	}
+
+	void insertBubbleInTable (Bubble bubble,bool rndType = true)
+	{
+		bubble.transform.SetParent(BubbleContainer.transform);
+		if(rndType)
+			bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
+		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
+		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
 	}
 
 	void calculateBubblesValues ()

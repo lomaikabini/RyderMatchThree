@@ -25,6 +25,8 @@ public class Item : FieldItem {
 			Debug.LogError("WTF! Not properly type for item!");
 			return;
 		}
+		this.enabled = true;
+		this.GetComponent<Bubble> ().enabled = false;
 		type = tp;
 		Sprite sprite = spritesIdle.Find(i => {return i.name == "item_"+itemType.ToString()? i : null;});
 		if(sprite == null)
@@ -40,6 +42,7 @@ public class Item : FieldItem {
 		Color c = img.color;
 		c.a = 0.8f;
 		img.color = c;
+		Debug.Log("zaaz");
 	}
 
 	public override void SetNotChosed ()
