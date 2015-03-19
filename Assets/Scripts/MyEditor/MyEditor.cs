@@ -37,22 +37,13 @@ public class MyEditor : MonoBehaviour {
 	public GameObject wizardEditorPrefab;
 	public Transform wizardsWrapper;
 
+	public GameObject rewriteLvlMenu;	
+
 	private float bubbleSize;
 	private float bubblesOffset;
 	private int TableSize = 7;
 	private float BubblePadding = 5;
-
-//	private int moves = 5;
-//	private int curentLvl = 1;
-//	private CellEditor[,] cells;
-//	private BubbleEditor[,] bubbles;
-//	private ItemEditor[,] items;
-//	private SeparatorEditor[,] separatorsHorizontal;
-//	private SeparatorEditor[,] separatorsVertical;
-//	private Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
-//	private Dictionary<string,int> goals = new Dictionary<string, int>();
-//	private List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
-//	private List<WizardEditor> wizards = new List<WizardEditor> ();
+	
 	private LevelEditor levelEditor;
 	public static MyEditor instance;
 
@@ -131,8 +122,8 @@ public class MyEditor : MonoBehaviour {
 	{
 		bubble.transform.SetParent (BubbleContainer.transform);
 		bubble.transform.localScale = new Vector3 (1f, 1f, 1f);
-		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding) - bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding) - bubblesOffset, 0f);
+		bubble.transform.localPosition = new Vector3 ((float)bubble.itemConfig.posX * bubbleSize + ((float)(bubble.itemConfig.posX) * BubblePadding) - bubblesOffset, 
+		                                              (float)bubble.itemConfig.posY * bubbleSize + ((float)(bubble.itemConfig.posY) * BubblePadding) - bubblesOffset, 0f);
 	}
 	void insertCellTable(CellEditor cell)
 	{
@@ -145,16 +136,16 @@ public class MyEditor : MonoBehaviour {
 	{
 		separ.transform.SetParent(SeparatorContainer.transform);
 		separ.rectTransform.localScale = new Vector3 (1f, 1f, 1f);
-		if(separ.type == Separator.Type.vertical)
+		if(separ.separatorConfig.type == Separator.Type.vertical)
 		{
-			separ.transform.localPosition = new Vector3 ((float)separ.posX * bubbleSize+bubbleSize/2f+BubblePadding/2f + ((float)(separ.posX) * BubblePadding)-bubblesOffset, 
-			                                             (float)separ.posY * bubbleSize + ((float)(separ.posY) * BubblePadding)-bubblesOffset, 0f);
+			separ.transform.localPosition = new Vector3 ((float)separ.separatorConfig.posX * bubbleSize+bubbleSize/2f+BubblePadding/2f + ((float)(separ.separatorConfig.posX) * BubblePadding)-bubblesOffset, 
+			                                             (float)separ.separatorConfig.posY * bubbleSize + ((float)(separ.separatorConfig.posY) * BubblePadding)-bubblesOffset, 0f);
 		}
 		else
 		{
 			separ.rectTransform.localRotation =Quaternion.Euler(new Vector3(0f,0f,90f));
-			separ.transform.localPosition = new Vector3 ((float)separ.posX * bubbleSize+ ((float)(separ.posX) * BubblePadding)-bubblesOffset, 
-			                                             (float)separ.posY * bubbleSize - bubbleSize/2f - BubblePadding/2f + ((float)(separ.posY) * BubblePadding)-bubblesOffset, 0f);
+			separ.transform.localPosition = new Vector3 ((float)separ.separatorConfig.posX * bubbleSize+ ((float)(separ.separatorConfig.posX) * BubblePadding)-bubblesOffset, 
+			                                             (float)separ.separatorConfig.posY * bubbleSize - bubbleSize/2f - BubblePadding/2f + ((float)(separ.separatorConfig.posY) * BubblePadding)-bubblesOffset, 0f);
 		}
 	}
 	void calculateBubblesValues ()
@@ -211,7 +202,7 @@ public class MyEditor : MonoBehaviour {
 
 	public void OnItemClick (ItemEditor itemEditor)
 	{
-		inputHeandler (itemEditor.posX, itemEditor.posY);
+		inputHeandler (itemEditor.itemConfig.posX, itemEditor.itemConfig.posY);
 	}
 
 	public void OnDamageChanged(BubbleEditorDamage b, int damage)
@@ -277,25 +268,25 @@ public class MyEditor : MonoBehaviour {
 			GameObject obj = Instantiate(separatorEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			SeparatorEditor separ = obj.GetComponent<SeparatorEditor>(); 
 			separ.tx.enabled = false;
-			separ.posX = posX;
-			separ.posY = posY;
-			if(insertSeparator.type == Separator.Type.vertical)
+			separ.separatorConfig.posX = posX;
+			separ.separatorConfig.posY = posY;
+			if(insertSeparator.separatorConfig.type == Separator.Type.vertical)
 			{
-				if(levelEditor.separatorsVertical[separ.posX,separ.posY] != null)
+				if(levelEditor.separatorsVertical[separ.separatorConfig.posX,separ.separatorConfig.posY] != null)
 				{
-					Destroy(levelEditor.separatorsVertical[separ.posX,separ.posY].gameObject);
+					Destroy(levelEditor.separatorsVertical[separ.separatorConfig.posX,separ.separatorConfig.posY].gameObject);
 				}
-				levelEditor.separatorsVertical[separ.posX,separ.posY] = separ;
+				levelEditor.separatorsVertical[separ.separatorConfig.posX,separ.separatorConfig.posY] = separ;
 			}
 			else
 			{
-				if(levelEditor.separatorsHorizontal[separ.posX,separ.posY] != null)
+				if(levelEditor.separatorsHorizontal[separ.separatorConfig.posX,separ.separatorConfig.posY] != null)
 				{
-					Destroy(levelEditor.separatorsHorizontal[separ.posX,separ.posY].gameObject);
+					Destroy(levelEditor.separatorsHorizontal[separ.separatorConfig.posX,separ.separatorConfig.posY].gameObject);
 				}
-				levelEditor.separatorsHorizontal[separ.posX,separ.posY] = separ;
+				levelEditor.separatorsHorizontal[separ.separatorConfig.posX,separ.separatorConfig.posY] = separ;
 			}
-			separ.SetType(insertSeparator.type,insertSeparator.destroyType,bubbleSize,insertSeparator.lives);
+			separ.SetType(insertSeparator.separatorConfig.type,insertSeparator.separatorConfig.destroyType,bubbleSize,insertSeparator.separatorConfig.lives);
 			insertSeparatorTable(separ);
 		}
 		
@@ -342,10 +333,10 @@ public class MyEditor : MonoBehaviour {
 			}
 			GameObject obj = Instantiate(itemEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			ItemEditor it = obj.GetComponent<ItemEditor>();
-			it.posX = posX;
-			it.posY = posY;
+			it.itemConfig.posX = posX;
+			it.itemConfig.posY = posY;
 			levelEditor.items[posX,posY] =  it;
-			it.SetType(insertItem.type,bubbleSize);
+			it.SetType(insertItem.itemConfig.type,bubbleSize);
 			insertItemInTable(it);
 		}
 		if(editorState == EditorState.clear)
@@ -391,12 +382,24 @@ public class MyEditor : MonoBehaviour {
 			}
 		}
 	}
-	public void OnBtnClearClick()
+
+	public void OnBtnSaveClick()
 	{
 		levelEditor.Save ();
-		editorState = EditorState.clear;
 	}
 
+	public void OnBtnClearClick()
+	{
+		editorState = EditorState.clear;
+	}
+	public void OnTrySaveExistLvl()
+	{
+		rewriteLvlMenu.SetActive (true);
+	}
+	public void OnBtnRewriteClick()
+	{
+		levelEditor.Save (true);
+	}
 	void instantiateEditorWizards ()
 	{
 		for(int i = 0; i < 8;i++)
@@ -516,9 +519,9 @@ public class MyEditor : MonoBehaviour {
 					SeparatorEditor sepEditor = obj.GetComponent<SeparatorEditor>();
 					obj.transform.SetParent(separatorList);
 					obj.transform.localScale = new Vector3(1f,1f,1f);
-					sepEditor.destroyType = destroyType;
-					sepEditor.type = type;
-					sepEditor.lives = separInfo.sprites.Length-j;
+					sepEditor.separatorConfig.destroyType = destroyType;
+					sepEditor.separatorConfig.type = type;
+					sepEditor.separatorConfig.lives = separInfo.sprites.Length-j;
 					sepEditor.isMenu = true;
 					SeparatorEditor.sprites = sep.sprites;
 					sepEditor.img.sprite = separInfo.sprites[j];
@@ -543,7 +546,7 @@ public class MyEditor : MonoBehaviour {
 			ItemEditor itemEditor = obj.GetComponent<ItemEditor>();
 			obj.transform.SetParent(itemList);
 			obj.transform.localScale = new Vector3(1f,1f,1f);
-			itemEditor.type = type;
+			itemEditor.itemConfig.type = type;
 			itemEditor.isMenu = true;
 			ItemEditor.spritesIdle = itm.spritesIdle;
 			itemEditor.img.sprite = itm.spritesIdle.Find(a => {return a.name == "item_"+type.ToString()? a : null;});

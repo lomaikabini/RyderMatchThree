@@ -77,11 +77,27 @@ public class Game : MonoBehaviour {
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
 		fillEnvironment ();
-		fillTableCells ();
-		fillTableSeparators ();
-		gameState = GameState.InAction;
-		dropNewBalls ();
-		moveAllBubbles ();
+		buildLevelFromFile ();
+//		fillTableCells ();
+//		fillTableSeparators ();
+//		gameState = GameState.InAction;
+//		dropNewBalls ();
+//		moveAllBubbles ();
+	}
+
+	void buildLevelFromFile ()
+	{
+		LevelEditor.LevelEditorSerializable config = LevelEditor.LoadLevel (1);
+		for(int i = 0; i < config.cells.Count; i++)
+		{
+			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
+			Cell cell = obj.GetComponent<Cell>(); 
+			cell.posX = config.cells[i].posX;
+			cell.posY = config.cells[i].posY;
+			cells[config.cells[i].posX,config.cells[i].posY] = cell;
+			insertCellTable(cell);
+			cell.SetType(config.cells[i].type,bubbleSize+2f,config.cells[i].lives);
+		}
 	}
 
 	public static Game Get()

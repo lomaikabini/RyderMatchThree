@@ -1,0 +1,5 @@
+GAF: Flash to Unity3D
+Version 3.12
+
+1) Bugs fixes.
+2) Converter improvements.

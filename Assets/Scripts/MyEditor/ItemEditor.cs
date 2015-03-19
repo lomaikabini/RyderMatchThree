@@ -9,14 +9,9 @@ public class ItemEditor : MonoBehaviour,IPointerClickHandler {
 	public Image img;
 	public Text tx;
 	[HideInInspector]
-	public Item.ItemType type;
-	[HideInInspector]
 	public RectTransform rectTransform;
-	[HideInInspector]
-	public int posX;
-	[HideInInspector]
-	public int posY;
 	public bool isMenu = false;
+	public ItemEssence itemConfig = new ItemEssence ();
 	public static List<Sprite> spritesIdle;
 	void Awake () 
 	{
@@ -31,8 +26,8 @@ public class ItemEditor : MonoBehaviour,IPointerClickHandler {
 	}
 	public void SetType (Item.ItemType tp, float size)
 	{
-		type = tp;
-		Sprite sprite = spritesIdle.Find(i => {return i.name == "item_"+type.ToString()? i : null;});
+		itemConfig.type = tp;
+		Sprite sprite = spritesIdle.Find(i => {return i.name == "item_"+itemConfig.type.ToString()? i : null;});
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;

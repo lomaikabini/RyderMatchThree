@@ -9,16 +9,7 @@ public class WizardEditor : MonoBehaviour {
 	public InputField slimeField;
 	public InputField toothField;
 	public Text nameTx;
-	[HideInInspector]
-	public int id;
-	[HideInInspector]
-	public int slimePeriod = 0;
-	[HideInInspector]
-	public int toothPeriod = 0;
-	[HideInInspector]
-	public int health  = 0;
-	[HideInInspector]
-	public int resistId = -1;
+	public WizardEssence wizardConfig = new WizardEssence();
 	public List<Toggle> toggleGroup;
 
 	void Start()
@@ -39,30 +30,30 @@ public class WizardEditor : MonoBehaviour {
 	void submitToothPeriod (string arg)
 	{
 		if (!arg.Equals (""))
-			toothPeriod = int.Parse (arg);
+			wizardConfig.toothPeriod = int.Parse (arg);
 		else
-			toothPeriod = 0;
+			wizardConfig.toothPeriod = 0;
 	}
 
 	void submitSlimePeriod (string arg)
 	{
 		if (!arg.Equals (""))
-			slimePeriod = int.Parse (arg);
+			wizardConfig.slimePeriod = int.Parse (arg);
 		else
-			slimePeriod = 0;
+			wizardConfig.slimePeriod = 0;
 	}
 
 	void submitHealth (string arg)
 	{
 		if (!arg.Equals (""))
-			health = int.Parse (arg);
+			wizardConfig.health = int.Parse (arg);
 		else
-			health = 0;
+			wizardConfig.health = 0;
 	}
 	public void SetName(int number)
 	{
-		id = number;
-		nameTx.text = "Wizard " + id.ToString ();
+		wizardConfig.id = number;
+		nameTx.text = "Wizard " + wizardConfig.id.ToString ();
 	}
 
 	public void OnToggleChange()
@@ -71,7 +62,7 @@ public class WizardEditor : MonoBehaviour {
 		{
 			if(tg.isOn)
 			{
-				resistId = int.Parse(tg.gameObject.name);
+				wizardConfig.resistId = int.Parse(tg.gameObject.name);
 			}
 		}
 	}

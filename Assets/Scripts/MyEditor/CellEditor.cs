@@ -7,17 +7,9 @@ public class CellEditor : MonoBehaviour,IPointerClickHandler {
 
 	public Image img;
 	public Text tx;
-//	[HideInInspector]
-//	public Cell.Type type;
-//	[HideInInspector]
-//	public int lives;
 	public bool isMenu = false;
 	[HideInInspector]
 	public static Cell.Sprites[] SpritesKit;
-//	[HideInInspector]
-//	public int posX;
-//	[HideInInspector]
-//	public int posY;
 	public CellEssence cellInfo = new CellEssence();
 	[HideInInspector]
 	public RectTransform rectTransform;

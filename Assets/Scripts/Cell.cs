@@ -47,13 +47,13 @@ public class Cell : MonoBehaviour {
 		rectTransform = GetComponent<RectTransform> ();
 	}
 
-	public void SetType (Type t,float size = -1)
+	public void SetType (Type t,float size = -1, int health = 1)
 	{
 		cellType = t;
 		Sprite sp;
 		kit = getKitByType (t);
-		lvl = kit.sprites.Length;
-		sp = kit.sprites[0];
+		lvl = health;
+		sp =  kit.sprites[kit.sprites.Length - health];
 		img.sprite = sp;
 		if(size != -1)
 			rectTransform.sizeDelta = new Vector2 (size, size);
