@@ -38,6 +38,8 @@ public class Game : MonoBehaviour {
 	private float bubblesOffset;
 	private float slipStep;
 	private float dir = -1;
+	private float timeForHint = 5f;
+	private float currentHintTime = 0f;
 
 	private int bubblesInAction = 0;
 	private int lastBubblePosY;
@@ -52,6 +54,7 @@ public class Game : MonoBehaviour {
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
 
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
+	private GameData data;
 
 	private static Game instance;
 
@@ -66,8 +69,24 @@ public class Game : MonoBehaviour {
 		}
 	}
 
+	void Update()
+	{
+		if(gameState == GameState.free)
+		{
+			currentHintTime +=Time.deltaTime;
+			if(currentHintTime >= timeForHint)
+			{
+				currentHintTime = 0f;
+				showHint();
+			}
+		}
+		else
+			currentHintTime =0f;
+	}
+
 	void Start () 
 	{
+		data = GameData.Get ();
 		gameState = GameState.free;
 		cells = new Cell[TableSize, TableSize];
 		bubbles = new FieldItem[TableSize,TableSize];
@@ -84,7 +103,7 @@ public class Game : MonoBehaviour {
 
 	void buildLevelFromFile ()
 	{
-		LevelEditor.LevelEditorSerializable config = LevelEditor.LoadLevel (1);
+		LevelEditor.LevelEditorSerializable config = LevelEditor.LoadLevel (data.currentLvl);
 		for(int i = 0; i < config.cells.Count; i++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -951,7 +970,84 @@ public class Game : MonoBehaviour {
 				insertBubbleInTable(bubble);
 			}
 	}
-
+	void showHint ()
+	{
+		List<FieldItem> foundItm = new List<FieldItem> ();
+		for(int i =0; i < TableSize;i++)
+			for(int j =0; j < TableSize; j++)
+		{
+			FieldItem bubble = bubbles[i,j];
+			if(bubble == null) continue;
+			foundItm.Add(bubble);
+			//vertikalnie i gorizontalnie matchi
+			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
+			{
+				foundItm.Add(bubbles[i-1,j]);
+			}
+			if(j-1 >= 0 && bubbles[i,j-1] != null && bubbles[i,j-1].type == bubble.type && separatorsHorizontal[i,j] == null)
+			{
+				foundItm.Add(bubbles[i,j-1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			if(j+1 < TableSize && bubbles[i,j+1] != null && bubbles[i,j+1].type == bubble.type && separatorsHorizontal[i,j+1] == null)
+			{
+				foundItm.Add(bubbles[i,j+1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			if(i+1 < TableSize && bubbles[i+1,j] != null && bubbles[i+1,j].type == bubble.type && separatorsVertical[i,j] == null)
+			{
+				foundItm.Add(bubbles[i+1,j]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			
+			//diagonalnie
+			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
+			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			{
+				foundItm.Add(bubbles[i-1,j+1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
+			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
+			{
+				foundItm.Add(bubbles[i-1,j-1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
+			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
+			{
+				foundItm.Add(bubbles[i+1,j-1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
+			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			{
+				foundItm.Add(bubbles[i+1,j+1]);
+				if(foundItm.Count >=3)
+					goto exit;
+			}
+			foundItm.RemoveRange(0,foundItm.Count);
+		}
+		exit:
+			if (foundItm.Count == 3)
+				StartCoroutine (playHintAnimation (foundItm));
+	}
+	IEnumerator playHintAnimation(List<FieldItem> foundItm)
+	{
+		yield return new WaitForEndOfFrame ();
+		foundItm [1].playChosedAnim ();
+		yield return new WaitForSeconds (0.3f);
+		foundItm [0].playChosedAnim ();
+		yield return new WaitForSeconds (0.3f);
+		foundItm [2].playChosedAnim ();
+		yield return null;
+	}
 	void checkPossibleMatch()
 	{
 		for(int i =0; i < TableSize;i++)

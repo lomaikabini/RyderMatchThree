@@ -75,6 +75,8 @@ public class Cell : MonoBehaviour {
 			lvl--;
 			if(lvl == 0)
 				SetType(Type.empty);
+			else
+				img.sprite =  kit.sprites[kit.sprites.Length - lvl];
 		}
 	}
 

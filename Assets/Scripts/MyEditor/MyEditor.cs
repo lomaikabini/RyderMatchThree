@@ -210,6 +210,13 @@ public class MyEditor : MonoBehaviour {
 		levelEditor.bubblesDamages [b.type] = damage;
 	}
 
+	public void OnPlayClick()
+	{
+		GameData.Get ().currentLvl = levelEditor.curentLvl;
+		GameData.Get ().save ();
+		GoTo.LoadGame ();
+	}
+
 	public void OnGoalChanged(BubbleEditorDamage b, int count)
 	{
 		if(b.isCell)
