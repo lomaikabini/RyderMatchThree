@@ -56,7 +56,7 @@ public class ParallaxJoint : MonoBehaviour {
 
 	}
 
-	public void RotateJoint(Bubble a, Bubble b)
+	public void RotateJoint(FieldItem a, FieldItem b)
 	{
 		float angle = 0f;
 		if (a.posX < b.posX && a.posY == b.posY)

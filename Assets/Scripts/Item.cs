@@ -15,10 +15,14 @@ public class Item : FieldItem {
 	{
 		key,
 		crystal,
-		gold
+		gold,
+		bomb
 	}
-
-	public override void SetType (Type tp, float size)
+	public override void SetItemScript()
+	{
+		itemScript = this;
+	}
+	public override void SetType (Type tp, float size,Bubble.BoosterType bT)
 	{
 		if(tp != Type.item)
 		{

@@ -7,6 +7,21 @@ using UnityEngine.EventSystems;
 public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPointerUpHandler{
 
 	public List<Sprite> bubbleImages;
+	public List<Sprite> boosterImages;
+	public BoosterType boosterType;
+	public enum BoosterType
+	{
+		none,
+		threeQuad,
+		diagonals,
+		horizontal,
+		vertical,
+		rnd
+	}
+	public override void SetBubbleScript()
+	{
+		bubbleScript = this;
+	}
 	public void OnPointerUp (PointerEventData eventData)
 	{
 		Game.Get ().BubblePointerUp (this);
@@ -22,18 +37,28 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		Game.Get ().BubblePointerEnter (this);
 	}
 
-	public override void SetType(Type tp,float size)
+	public override void SetType(Type tp,float size,BoosterType bT)
 	{
 		this.enabled = true;
 		this.GetComponent<Item> ().enabled = false;
 		type = tp;
-		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
-		if(sprite == null)
-			Debug.LogError("Sprite didn't find!");
-		img.sprite = sprite;
+		boosterType = bT;
 		rectTransform.sizeDelta = new Vector2 (size, size);
 		RealeaseItem ();
 		SetNotChosed ();
+
+		Sprite sprite;
+		if(boosterType == BoosterType.none)
+		{
+			sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
+		}
+		else
+		{
+			sprite =  boosterImages.Find(i => {return i.name == "booster_"+type.ToString()+"_"+boosterType.ToString()? i : null;});
+		}
+		if(sprite == null)
+			Debug.LogError("Sprite didn't find!");
+		img.sprite = sprite;
 	}
 
 	public override void HideItem ()

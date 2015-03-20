@@ -12,6 +12,10 @@ public abstract class FieldItem : MonoBehaviour {
 	[HideInInspector]
 	public int posY;
 	[HideInInspector]
+	public Bubble bubbleScript;
+	[HideInInspector]
+	public Item itemScript;
+	[HideInInspector]
 	public RectTransform rectTransform;
 
 	[HideInInspector]
@@ -29,6 +33,8 @@ public abstract class FieldItem : MonoBehaviour {
 	void Awake () 
 	{
 		rectTransform = GetComponent<RectTransform> ();
+		SetBubbleScript ();
+		SetItemScript ();
 	}
 
 	public void addMovePoints(List<KeyValuePair<float,Vector2>> list)
@@ -62,9 +68,12 @@ public abstract class FieldItem : MonoBehaviour {
 	{
 		animator.Play ("Scale", 0, 0f);
 	}
-	public abstract void SetType(Type tp,float size);
 	public abstract void SetChosed ();
 	public abstract void SetNotChosed();
 	public abstract void HideItem ();
 	public abstract void RealeaseItem();
+	public virtual void SetType(Type tp,float size,Bubble.BoosterType bT){}
+	//public virtual void SetType(Type tp,float size){}
+	public virtual void SetBubbleScript(){}
+	public virtual void SetItemScript(){}
 }

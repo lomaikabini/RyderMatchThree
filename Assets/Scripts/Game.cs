@@ -50,13 +50,14 @@ public class Game : MonoBehaviour {
 	private Separator[,] separatorsVertical;
 	private Bubble firstBubble;
 	private Bubble secondBubble;
-	private List<Bubble> matchBubbles =  new List<Bubble>();
+	private List<FieldItem> matchBubbles =  new List<FieldItem>();
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
+	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
 
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 	private GameData data;
 
-	private static Game instance;
+	public static Game instance;
 
 	void Awake()
 	{
@@ -97,8 +98,6 @@ public class Game : MonoBehaviour {
 		calculateBubblesValues ();
 		fillEnvironment ();
 		buildLevelFromFile ();
-//		dropNewBalls ();
-//		moveAllBubbles ();
 	}
 
 	void buildLevelFromFile ()
@@ -134,8 +133,9 @@ public class Game : MonoBehaviour {
 			bubble.posX = config.bubbles[i].posX;
 			bubble.posY = config.bubbles[i].posY;
 			bubbles[bubble.posX,bubble.posY] = bubble;
-			bubble.SetType(config.bubbles[i].type,bubbleSize);
+			bubble.SetType(config.bubbles[i].type,bubbleSize,Bubble.BoosterType.none);
 			insertBubbleInTable(bubble,false);
+			moveBubbles.Add(bubble);
 		}
 		for(int i = 0; i < config.items.Count;i++)
 		{
@@ -145,11 +145,30 @@ public class Game : MonoBehaviour {
 			itm.posY = config.items[i].posY;
 			bubbles[itm.posX,itm.posY] = itm;
 			itm.itemType = config.items[i].type;
-			itm.SetType(FieldItem.Type.item,bubbleSize);
+			itm.SetType(FieldItem.Type.item,bubbleSize,Bubble.BoosterType.none);
 			insertItemInTable(itm);
+			moveBubbles.Add(itm);
 		}
+		for (int i = 0; i < config.availableTypes.Count; i++)
+			availableTypes.Add (config.availableTypes [i]);
+
+		//generaciya ostavwixsya bablov
+		dropNewBalls ();
+		for(int i =0; i < moveBubbles.Count;i++)
+		{
+			insertItemInTable(moveBubbles[i],bubbleSize);
+			moveBubbles[i].whereMove.RemoveRange(0,moveBubbles[i].whereMove.Count);
+			moveBubbles[i].whereMove.Add(new KeyValuePair<float, Vector2>(1f,new Vector2((float)moveBubbles[i].posX,(float)moveBubbles[i].posY)));
+		}
+		StartCoroutine (throwStartBubbles ());
 	}
-	
+	IEnumerator throwStartBubbles()
+	{
+		yield return new WaitForSeconds (0.3f);
+		moveAllBubbles ();
+		yield return null;
+	}
+
 	public static Game Get()
 	{
 		return instance;
@@ -255,6 +274,7 @@ public class Game : MonoBehaviour {
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
+			BoosterManager.instance.AddCollectItems(matchBubbles);
 			destroyFoundBubbles (matchBubbles);
 		} else 
 		{
@@ -302,14 +322,37 @@ public class Game : MonoBehaviour {
 		bubbles = new Bubble[TableSize,TableSize];
 		separatorsHorizontal = new Separator[TableSize, TableSize];
 		separatorsVertical = new Separator[TableSize, TableSize];
-		fillTableCells ();
-		fillTableSeparators ();
 		gameState = GameState.InAction;
-		dropNewBalls ();
-		moveAllBubbles ();
+		buildLevelFromFile ();
 		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
-
+	public void CreateBooster(Dragon Dragon)
+	{
+		int x = UnityEngine.Random.Range (0, TableSize);
+		int y = UnityEngine.Random.Range (0, TableSize);
+		FieldItem target = bubbles [x,y];
+		while(target == null || target.type == FieldItem.Type.item)
+		{
+			if(x+1< TableSize)
+			{
+				x ++;
+			}
+			else
+			{
+				if(y+1 < TableSize)
+				{
+					y++;
+				}
+				else
+				{
+					y = 0;
+				}
+				x = 0;
+			}
+			target = bubbles[x,y];
+		}
+		target.SetType (Dragon.type, bubbleSize, Dragon.boosterType);
+	}
 	void hideDifferentBubbles (Bubble bubble)
 	{
 		for(int i = 0; i < TableSize; i++)
@@ -330,7 +373,7 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	void destroyFoundBubbles (List<Bubble> list)
+	void destroyFoundBubbles (List<FieldItem> list)
 	{
 		removeDublicate (ref list);
 		explositionNearBlocks (list);
@@ -353,12 +396,12 @@ public class Game : MonoBehaviour {
 		yield return null;
 	}
 
-	void explositionNearSeparators (List<Bubble> list)
+	void explositionNearSeparators (List<FieldItem> list)
 	{
 		List<Separator> usedSeparators = new List<Separator> ();
 		for (int i = 0; i < list.Count; i++) 
 		{
-			Bubble b = list [i];
+			FieldItem b = list [i];
 			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.horizontal);
 			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.vertical);
 
@@ -395,12 +438,12 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	void explositionNearBlocks(List<Bubble> list)
+	void explositionNearBlocks(List<FieldItem> list)
 	{
 		List<Cell> usedCells = new List<Cell> ();
 		for(int i = 0; i < list.Count; i++)
 		{
-			Bubble b = list[i];
+			FieldItem b = list[i];
 			if(b.posY + 1 < TableSize)
 				giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
 			if(b.posY - 1 >= 0)
@@ -783,17 +826,15 @@ public class Game : MonoBehaviour {
 						Bubble bubble = BubblePool.Get().Pull().GetComponent<Bubble>();
 						bubble.enabled = true;
 						bubble.transform.SetParent(BubbleContainer.transform);
-						bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length-1)), bubbleSize);
+						bubble.SetType (availableTypes[Mathf.RoundToInt(UnityEngine.Random.Range(0,availableTypes.Count))], bubbleSize,Bubble.BoosterType.none);
 						bubble.transform.localPosition = new Vector3 ((float)(i) * bubbleSize + ((float)(i) * BubblePadding)-bubblesOffset, 
 						                                              (float)(TableSize+repeats[i]) * bubbleSize + ((float)(TableSize+repeats[i]) * BubblePadding)-bubblesOffset, 0f);
 						bubbles[tmpX,tmpY] = bubble;
 						bubble.posX = tmpX;
 						bubble.posY = tmpY;
-						//bubblesInAction++;
 						repeats[i]++;
 						bubble.addMovePoints(positions);
 						moveBubbles.Add(bubble);
-						//StartCoroutine(moveBubble(bubble,positions,false));
 					}
 
 					if(positions.Count>1)
@@ -843,7 +884,7 @@ public class Game : MonoBehaviour {
 		return true;
 	}
 
-	void removeDublicate (ref List<Bubble> list)
+	void removeDublicate (ref List<FieldItem> list)
 	{
 		for(int i = 0; i < list.Count; i++)
 			for(int j = 0; j < list.Count; j++)
@@ -1233,20 +1274,20 @@ public class Game : MonoBehaviour {
 		                                              (float)cell.posY * bubbleSize + ((float)(cell.posY) * BubblePadding)-bubblesOffset, 0f);
 	}
 
-	void insertItemInTable(FieldItem bubble)
+	void insertItemInTable(FieldItem bubble,float clearance = 0f)
 	{
 		bubble.transform.SetParent(BubbleContainer.transform);
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset+clearance, 0f);
 	}
 
-	void insertBubbleInTable (Bubble bubble,bool rndType = true)
+	void insertBubbleInTable (Bubble bubble,bool rndType = true,float clearance = 0f)
 	{
 		bubble.transform.SetParent(BubbleContainer.transform);
 		if(rndType)
-			bubble.SetType ((Bubble.Type)Mathf.RoundToInt(UnityEngine.Random.Range(0,Enum.GetNames(typeof(Bubble.Type)).Length)), bubbleSize);
+			bubble.SetType (availableTypes[Mathf.RoundToInt(UnityEngine.Random.Range(0,availableTypes.Count))], bubbleSize,Bubble.BoosterType.none);
 		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset, 0f);
+		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset+clearance, 0f);
 	}
 
 	void calculateBubblesValues ()
