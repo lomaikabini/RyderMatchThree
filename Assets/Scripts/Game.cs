@@ -9,6 +9,8 @@ public class Game : MonoBehaviour {
 
 	public int TableSize;
 	public int ScoresPerBubble;
+	[HideInInspector]
+	public float bubbleSize;
 	public float BubblePadding;
 
 	public GameObject cellPrefab;
@@ -34,7 +36,6 @@ public class Game : MonoBehaviour {
 	private float speedStart = 9f;
 	private float speedMax = 12f;
 	private float speedBoost = 3.5f;
-	private float bubbleSize;
 	private float bubblesOffset;
 	private float slipStep;
 	private float dir = -1;
@@ -182,6 +183,7 @@ public class Game : MonoBehaviour {
 		matchBubbles.Add (bubble);
 		bubble.SetChosed ();
 		gameState = GameState.bubblePressed;
+		DragonManager.instance.ShowBooster (bubble.type);
 		hideDifferentBubbles (bubble);
 	}
 
@@ -244,6 +246,7 @@ public class Game : MonoBehaviour {
 		int indx = matchBubbles.Count - 1;
 		if (!exist && Mathf.Abs (matchBubbles[indx].posX - bubble.posX) <= 1 && Mathf.Abs (matchBubbles[indx].posY - bubble.posY) <= 1)
 			{
+				DragonManager.instance.IncreaseIndicatorCurrent(bubble.type);
 				bubble.playChosedAnim ();
 				matchBubbles.Add(bubble);
 				bubble.SetChosed();
@@ -281,6 +284,7 @@ public class Game : MonoBehaviour {
 			for(int i = 0; i < matchBubbles.Count; i++)
 				matchBubbles[i].playChosedAnim();
 			matchBubbles.RemoveRange(0, matchBubbles.Count);
+			DragonManager.instance.HideShowedBoosters();
 		}
 		showAllBubbles();
 		removeAllJoints ();
@@ -325,7 +329,7 @@ public class Game : MonoBehaviour {
 		buildLevelFromFile ();
 		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
-	public void CreateBooster(Dragon Dragon)
+	public FieldItem CreateBooster(Dragon Dragon)
 	{
 		int x = UnityEngine.Random.Range (0, TableSize);
 		int y = UnityEngine.Random.Range (0, TableSize);
@@ -350,7 +354,8 @@ public class Game : MonoBehaviour {
 			}
 			target = bubbles[x,y];
 		}
-		target.SetType (Dragon.type, bubbleSize, Dragon.boosterType);
+		return target;
+		//target.SetType (Dragon.type, bubbleSize, Dragon.boosterType);
 	}
 	void hideDifferentBubbles (Bubble bubble)
 	{
@@ -1129,13 +1134,17 @@ public class Game : MonoBehaviour {
 
 			if(equals >=2)
 			{
-				gameState = GameState.free;
+				//gameState = GameState.free;
+				DragonManager.instance.DropBoosters();
 				return;
 			}
 		}
 		mixBubbles ();
 	}
-
+	public void ReleaseGame()
+	{
+		gameState = GameState.free;
+	}
 	void mixBubbles ()
 	{
 		int[,] newPositions = new int[TableSize, TableSize];

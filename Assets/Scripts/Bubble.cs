@@ -54,13 +54,16 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		}
 		else
 		{
-			sprite =  boosterImages.Find(i => {return i.name == "booster_"+type.ToString()+"_"+boosterType.ToString()? i : null;});
+			sprite = GetBoosterSpriteByType(type,boosterType);
 		}
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
 	}
-
+	public Sprite GetBoosterSpriteByType(Type t,BoosterType bT)
+	{
+		return boosterImages.Find(i => {return i.name == "booster_"+t.ToString()+"_"+bT.ToString()? i : null;});
+	}
 	public override void HideItem ()
 	{
 		Color c = img.color;

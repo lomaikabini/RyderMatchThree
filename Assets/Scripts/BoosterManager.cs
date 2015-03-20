@@ -3,9 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class BoosterManager : MonoBehaviour {
-
-	private int[] itemsRequire = {16,16,16,16,16};
-	private int[] itemsCollect = {0,0,0,0,0};
+	[HideInInspector]
+	public int[] itemsRequire = {16,16,16,16,16};
+	[HideInInspector]
+	public int[] itemsCollect = {0,0,0,0,0};
 
 	public static BoosterManager instance;
 
