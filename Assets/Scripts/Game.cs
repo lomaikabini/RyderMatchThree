@@ -274,17 +274,16 @@ public class Game : MonoBehaviour {
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
-			BoosterManager.instance.AddCollectItems(matchBubbles);
 			destroyFoundBubbles (matchBubbles);
 		} else 
 		{
 			gameState = GameState.free;
 			for(int i = 0; i < matchBubbles.Count; i++)
 				matchBubbles[i].playChosedAnim();
+			matchBubbles.RemoveRange(0, matchBubbles.Count);
 		}
 		showAllBubbles();
 		removeAllJoints ();
-		matchBubbles.RemoveRange(0, matchBubbles.Count);
 	}
 
 	void removeAllJoints ()
@@ -331,7 +330,7 @@ public class Game : MonoBehaviour {
 		int x = UnityEngine.Random.Range (0, TableSize);
 		int y = UnityEngine.Random.Range (0, TableSize);
 		FieldItem target = bubbles [x,y];
-		while(target == null || target.type == FieldItem.Type.item)
+		while(target == null || target.type == FieldItem.Type.item || target.bubbleScript.boosterType != Bubble.BoosterType.none)
 		{
 			if(x+1< TableSize)
 			{
@@ -382,11 +381,18 @@ public class Game : MonoBehaviour {
 		{
 			FieldItem bubble = bubbles[list[i].posX,list[i].posY];
 			bubbles[list[i].posX,list[i].posY] = null;
-			BubblePool.Get().Push(bubble.gameObject);
+			//BubblePool.Get().Push(bubble.gameObject);
 		}
-		StartCoroutine (dropBallsWithDelay (1f));
+		DragonManager.instance.GetDragonItems (list);
+		tableAnimator.Play ("DarkenTheScreen",0,0f);
+		//StartCoroutine (dropBallsWithDelay (1f));
 	}
-
+	public void ContinueGame()
+	{
+		matchBubbles.RemoveRange(0, matchBubbles.Count);
+		tableAnimator.Play ("LightenTheScreen",0,0f);
+		dropBalls ();
+	}
 	IEnumerator dropBallsWithDelay(float delay)
 	{
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
