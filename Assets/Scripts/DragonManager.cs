@@ -94,14 +94,15 @@ public class DragonManager : MonoBehaviour {
 		{
 			StartCoroutine(attackWizard());
 			BoosterManager.instance.AddCollectItems(matchBubbles);
-			Game.instance.ContinueGame();
+			//Game.instance.ContinueGame();
 		}
 		yield return null;
 	}
 	IEnumerator attackWizard()
 	{
-		yield return new WaitForSeconds (0.5f);
+		yield return new WaitForSeconds (0.25f);
 		HideShowedBoosters();
+		Game.instance.ContinueGame();
 		yield return null;
 	}
 	IEnumerator DropBooster(KeyValuePair<Dragon,FieldItem> itm)
@@ -180,6 +181,14 @@ public class DragonManager : MonoBehaviour {
 		float value = 1f / maxCount;
 		Dragon dragon = dragons.Find(o => o.type == t);
 		float newValue = Mathf.Max (0f, dragon.overlayCurrent.fillAmount - value);
+		dragon.overlayCurrent.fillAmount = newValue; 
+	}
+	public void DecreaseIndicatorCurrent(FieldItem.Type t)
+	{
+		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
+		float value = 1f / maxCount;
+		Dragon dragon = dragons.Find(o => o.type == t);
+		float newValue = Mathf.Min (1f, dragon.overlayCurrent.fillAmount + value);
 		dragon.overlayCurrent.fillAmount = newValue; 
 	}
 	public void IncreaseIndicatorFact(FieldItem.Type t)

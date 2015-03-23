@@ -54,7 +54,7 @@ public class Game : MonoBehaviour {
 	private List<FieldItem> matchBubbles =  new List<FieldItem>();
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
 	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
-
+	private List<Vector2> boosetEffectPos;
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 	private GameData data;
 
@@ -182,6 +182,7 @@ public class Game : MonoBehaviour {
 		bubble.playChosedAnim ();
 		matchBubbles.Add (bubble);
 		bubble.SetChosed ();
+		showBoosteEffect(bubble.bubbleScript.boosterType);
 		gameState = GameState.bubblePressed;
 		DragonManager.instance.ShowBooster (bubble.type);
 		hideDifferentBubbles (bubble);
@@ -234,7 +235,18 @@ public class Game : MonoBehaviour {
 			int id = matchBubbles.Count-1;
 			matchBubbles[id].SetNotChosed();
 			matchBubbles[id].playChosedAnim();
+			DragonManager.instance.DecreaseIndicatorCurrent(matchBubbles[id].type);
 			matchBubbles.Remove(matchBubbles[id]);
+			Bubble.BoosterType bType = Bubble.BoosterType.none;
+			for(int i = matchBubbles.Count-1; i >= 0; i--)
+			{
+				if(matchBubbles[i].bubbleScript.boosterType != Bubble.BoosterType.none)
+				{
+					bType = matchBubbles[i].bubbleScript.boosterType;
+					break;
+				}
+			}
+			showBoosteEffect(bType);
 			if(joints.Count > 0)
 			{
 				JointsPool.Get().Push(joints[joints.Count - 1]);
@@ -246,10 +258,21 @@ public class Game : MonoBehaviour {
 		int indx = matchBubbles.Count - 1;
 		if (!exist && Mathf.Abs (matchBubbles[indx].posX - bubble.posX) <= 1 && Mathf.Abs (matchBubbles[indx].posY - bubble.posY) <= 1)
 			{
+
 				DragonManager.instance.IncreaseIndicatorCurrent(bubble.type);
 				bubble.playChosedAnim ();
 				matchBubbles.Add(bubble);
 				bubble.SetChosed();
+				Bubble.BoosterType bType = Bubble.BoosterType.none;
+				for(int i = matchBubbles.Count-1; i >= 0; i--)
+				{
+					if(matchBubbles[i].bubbleScript.boosterType != Bubble.BoosterType.none)
+					{
+						bType = matchBubbles[i].bubbleScript.boosterType;
+						break;
+					}
+				}
+				showBoosteEffect(bType);
 				if(matchBubbles.Count == 3)
 				{
 					for(int i =0; i < 2; i++)
@@ -274,6 +297,145 @@ public class Game : MonoBehaviour {
 			}
 	}
 
+	void showBoosteEffect (Bubble.BoosterType bType)
+	{
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize; j++)
+		{
+			cells[i,j].SetBoosterEffect(false);
+		}
+		if(bType == Bubble.BoosterType.none) return;
+		boosetEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
+		for(int i = 0 ; i < boosetEffectPos.Count; i++)
+		{
+			cells[(int)boosetEffectPos[i].x,(int)boosetEffectPos[i].y].SetBoosterEffect(true);
+		}
+//		int posX = matchBubbles [matchBubbles.Count - 1].posX;
+//		int posY = matchBubbles [matchBubbles.Count - 1].posY;
+//		int size = BoosterManager.boosterSizes [bType];
+//		if(bType == Bubble.BoosterType.threeQuad)
+//		{
+//			for(int i = posX - ((size-1)/2);i <= posX+((size-1)/2);i++)
+//				for(int j = posY - ((size-1)/2);j <= posY+((size-1)/2);j++)
+//			{
+//				if(i >= 0 && i < TableSize && j >=0 && j < TableSize)
+//					cells[i,j].SetBoosterEffect(true);
+//			}
+//		}
+//		else if (bType == Bubble.BoosterType.diagonals) 
+//		{
+//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+//			{
+//				if((posX+i) >= 0 && (posX+i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
+//					cells[posX+i,posY+i].SetBoosterEffect(true);
+//			}
+//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+//			{
+//				if((posX-i) >= 0 && (posX-i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
+//					cells[posX-i,posY+i].SetBoosterEffect(true);
+//			}
+//		}
+//		else if(bType == Bubble.BoosterType.horizontal)
+//		{
+//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+//			{
+//				if((posX+i) >= 0 && (posX+i) < TableSize)
+//					cells[posX+i,posY].SetBoosterEffect(true);
+//			}
+//		}
+//		else if(bType == Bubble.BoosterType.vertical)
+//		{
+//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+//			{
+//				if((posX+i) >= 0 && (posX+i) < TableSize)
+//					cells[posX,posY+i].SetBoosterEffect(true);
+//			}
+//		}
+//		else if(bType == Bubble.BoosterType.rnd)
+//		{
+//			List<Vector2> positions = new List<Vector2>();
+//			List<Vector2> availablePositions = new List<Vector2>();
+//			for(int i = 0; i < TableSize; i++)
+//				for(int j = 0; j < TableSize; j++)
+//			{
+//				if(bubbles[i,j] != null && bubbles[i,j].type != FieldItem.Type.item)
+//					availablePositions.Add(new Vector2((float)i,(float)j));
+//			}
+//			for(int i = 0; i < size; i++)
+//			{
+//				Vector2 pos = availablePositions[UnityEngine.Random.Range(0, availablePositions.Count)];
+//				availablePositions.Remove(pos);
+//				positions.Add(pos);
+//			}
+//			for(int i = 0; i < positions.Count; i++)
+//			{
+//				cells[(int)positions[i].x,(int)positions[i].y].SetBoosterEffect(true);
+//			}
+//		}
+	}
+
+	List<Vector2> getPositionForBoosetrEffect(Bubble.BoosterType bType,int posX, int posY)
+	{
+		List<Vector2> result = new List<Vector2> ();
+		int size = BoosterManager.boosterSizes [bType];
+		if(bType == Bubble.BoosterType.threeQuad)
+		{
+			for(int i = posX - ((size-1)/2);i <= posX+((size-1)/2);i++)
+				for(int j = posY - ((size-1)/2);j <= posY+((size-1)/2);j++)
+			{
+				if(i >= 0 && i < TableSize && j >=0 && j < TableSize)
+					result.Add(new Vector2((float)i,(float)j));
+			}
+		}
+		else if (bType == Bubble.BoosterType.diagonals) 
+		{
+			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+			{
+				if((posX+i) >= 0 && (posX+i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
+					result.Add(new Vector2((float)(posX+i),(float)(posY+i)));
+			}
+			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+			{
+				if((posX-i) >= 0 && (posX-i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
+					result.Add(new Vector2((float)(posX-i),(float)(posY+i)));
+			}
+		}
+		else if(bType == Bubble.BoosterType.horizontal)
+		{
+			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+			{
+				if((posX+i) >= 0 && (posX+i) < TableSize)
+					result.Add(new Vector2((float)(posX+i),(float)(posY)));
+			}
+		}
+		else if(bType == Bubble.BoosterType.vertical)
+		{
+			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
+			{
+				if((posX+i) >= 0 && (posX+i) < TableSize)
+					result.Add(new Vector2((float)(posX),(float)(posY+i)));
+			}
+		}
+		else if(bType == Bubble.BoosterType.rnd)
+		{
+			List<Vector2> availablePositions = new List<Vector2>();
+			for(int i = 0; i < TableSize; i++)
+				for(int j = 0; j < TableSize; j++)
+			{
+				if(bubbles[i,j] != null && bubbles[i,j].type != FieldItem.Type.item)
+					availablePositions.Add(new Vector2((float)i,(float)j));
+			}
+			for(int i = 0; i < size; i++)
+			{
+				if(availablePositions.Count == 0) break;
+				Vector2 pos = availablePositions[UnityEngine.Random.Range(0, availablePositions.Count)];
+				availablePositions.Remove(pos);
+				result.Add(pos);
+			}
+		}
+		return result;
+	}
+
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
@@ -286,6 +448,7 @@ public class Game : MonoBehaviour {
 			matchBubbles.RemoveRange(0, matchBubbles.Count);
 			DragonManager.instance.HideShowedBoosters();
 		}
+		showBoosteEffect(Bubble.BoosterType.none);
 		showAllBubbles();
 		removeAllJoints ();
 	}

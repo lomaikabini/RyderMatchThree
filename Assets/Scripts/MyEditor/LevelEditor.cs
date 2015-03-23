@@ -82,7 +82,12 @@ public class LevelEditor
 
 	public static LevelEditorSerializable LoadLevel(int id)
 	{
-		string fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,id.ToString(),".txt");
+		string fileName = "";
+		if (Application.platform == RuntimePlatform.WindowsEditor)
+			fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,id.ToString(),".txt");
+		else if(Application.platform == RuntimePlatform.Android)
+			fileName =String.Concat("jar:file://" , Application.dataPath , "!/assets/Levels/" ,"Level " ,id.ToString(),".txt");
+
 		if (File.Exists (fileName))
 		{
 			string s = File.ReadAllText(fileName);
@@ -107,7 +112,11 @@ public class LevelEditor
 
 	public void Save(bool rewrite = false)
 	{
-		string fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,curentLvl.ToString(),".txt");
+		string fileName = "";
+		if (Application.platform == RuntimePlatform.WindowsEditor)
+			fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,curentLvl.ToString(),".txt");
+		else if(Application.platform == RuntimePlatform.Android)
+			fileName =String.Concat("jar:file://" , Application.dataPath , "!/assets/Levels/" ,"Level " ,curentLvl.ToString(),".txt");
 		if (!CheckFile (fileName) || rewrite)
 			WriteToFile (JsonMapper.ToJson (new LevelEditorSerializable (this)), fileName);
 		else

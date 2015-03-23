@@ -8,11 +8,17 @@ public class BoosterManager : MonoBehaviour {
 	[HideInInspector]
 	public int[] itemsCollect = {0,0,0,0,0};
 
+	public static Dictionary<Bubble.BoosterType,int> boosterSizes = new Dictionary<Bubble.BoosterType, int> ();
 	public static BoosterManager instance;
 
 	void Awake()
 	{
 		instance = this;
+		boosterSizes.Add (Bubble.BoosterType.diagonals, 5);
+		boosterSizes.Add (Bubble.BoosterType.horizontal, 5);
+		boosterSizes.Add (Bubble.BoosterType.rnd, 5);
+		boosterSizes.Add (Bubble.BoosterType.threeQuad, 3);
+		boosterSizes.Add (Bubble.BoosterType.vertical, 5);
 	}
 
 	public void AddCollectItems(List<FieldItem> items)

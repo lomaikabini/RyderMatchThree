@@ -8,6 +8,7 @@ public class Cell : MonoBehaviour {
 
 	public Sprites[] SpritesKit;
 	public Image img;
+	public Image boosteEffect;
 	[HideInInspector]
 	public int posX;
 	[HideInInspector]
@@ -42,11 +43,23 @@ public class Cell : MonoBehaviour {
 	
 	int lvl;
 	Sprites kit;
+	GameObject boosterEffectGm;
 	void Awake()
 	{
 		rectTransform = GetComponent<RectTransform> ();
+		boosterEffectGm = boosteEffect.gameObject;
+		boosterEffectGm.SetActive (false);
 	}
-
+	void Update()
+	{
+		if(boosterEffectGm.activeSelf)
+		{
+			float val = Time.deltaTime *30f;
+			Vector3 rot = boosterEffectGm.transform.localEulerAngles;
+			rot.z +=val;
+			boosterEffectGm.transform.localEulerAngles = rot;
+		}
+	}
 	public void SetType (Type t,float size = -1, int health = 1)
 	{
 		cellType = t;
@@ -79,6 +92,11 @@ public class Cell : MonoBehaviour {
 				img.sprite =  kit.sprites[kit.sprites.Length - lvl];
 		}
 	}
-
+	public void SetBoosterEffect(bool val)
+	{
+		boosterEffectGm.SetActive (val);
+		if (val)
+			boosterEffectGm.transform.eulerAngles = Vector3.zero;
+	}
 
 }
