@@ -98,12 +98,15 @@ public class Game : MonoBehaviour {
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
 		fillEnvironment ();
-		buildLevelFromFile ();
+		StartCoroutine(buildLevelFromFile ());
 	}
 
-	void buildLevelFromFile ()
+	IEnumerator buildLevelFromFile ()
 	{
-		LevelEditor.LevelEditorSerializable config = LevelEditor.LoadLevel (data.currentLvl);
+		LevelEditor.LevelEditorSerializable o = new LevelEditor.LevelEditorSerializable ();
+		IEnumerator e = o.loadDataLvl (data.currentLvl);
+		yield return StartCoroutine (e);
+		LevelEditor.LevelEditorSerializable config = o.instance;
 		for(int i = 0; i < config.cells.Count; i++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -248,6 +251,11 @@ public class Game : MonoBehaviour {
 			}
 			showBoosteEffect(bType);
 			if(joints.Count > 0)
+			{
+				JointsPool.Get().Push(joints[joints.Count - 1]);
+				joints.RemoveAt(joints.Count -1);
+			}
+			if(matchBubbles.Count == 2)
 			{
 				JointsPool.Get().Push(joints[joints.Count - 1]);
 				joints.RemoveAt(joints.Count -1);
@@ -412,7 +420,7 @@ public class Game : MonoBehaviour {
 		{
 			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
 			{
-				if((posX+i) >= 0 && (posX+i) < TableSize)
+				if((posY+i) >= 0 && (posY+i) < TableSize)
 					result.Add(new Vector2((float)(posX),(float)(posY+i)));
 			}
 		}
@@ -489,7 +497,7 @@ public class Game : MonoBehaviour {
 		separatorsHorizontal = new Separator[TableSize, TableSize];
 		separatorsVertical = new Separator[TableSize, TableSize];
 		gameState = GameState.InAction;
-		buildLevelFromFile ();
+		StartCoroutine(buildLevelFromFile ());
 		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 	public FieldItem CreateBooster(Dragon Dragon)

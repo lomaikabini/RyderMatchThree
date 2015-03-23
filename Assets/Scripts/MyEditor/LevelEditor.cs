@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using LitJson;
 using System.IO;
 
-
-[Serializable]
 public class LevelEditor
 {
 	public int moves = 5;
@@ -33,6 +31,7 @@ public class LevelEditor
 
 	public class LevelEditorSerializable
 	{
+		public LevelEditorSerializable instance;
 		public int moves = 5;
 		public int curentLvl = 1;
 		public List<CellEssence> cells = new List<CellEssence>();
@@ -78,45 +77,62 @@ public class LevelEditor
 				bubblesDamages.Add(new BubbleDamageEssence(obj.Key,obj.Value));
 			}
 		}
-	}
-
-	public static LevelEditorSerializable LoadLevel(int id)
-	{
-		string fileName = "";
-		if (Application.platform == RuntimePlatform.WindowsEditor)
-			fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,id.ToString(),".txt");
-		else if(Application.platform == RuntimePlatform.Android)
-			fileName =String.Concat("jar:file://" , Application.dataPath , "!/assets/Levels/" ,"Level " ,id.ToString(),".txt");
-
-		if (File.Exists (fileName))
+		public IEnumerator loadDataLvl(int id)
 		{
-			string s = File.ReadAllText(fileName);
-			LevelEditorSerializable data;
-			try
+			string fileName = (Application.streamingAssetsPath + "/Level " + id.ToString () + ".txt");;
+			if(Application.platform == RuntimePlatform.Android)
 			{
-				data = JsonMapper.ToObject<LevelEditorSerializable>(s);
+				WWW dataFile = new WWW(fileName);
+				yield return dataFile;
+				if (string.IsNullOrEmpty(dataFile.error))
+				{
+					string s = dataFile.text;//File.ReadAllText(fileName);
+					//LevelEditorSerializable data = this;
+					try
+					{
+						instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
+					}
+					catch (System.Exception e)
+					{
+						Debug.Log(e);
+					}
+					yield return instance;
+				}
+				else
+				{
+					Debug.LogError("Level didn't find on path: "+fileName);
+					yield return null;
+				}
 			}
-			catch (System.Exception e)
+			else if(Application.platform == RuntimePlatform.WindowsEditor)
 			{
-				Debug.Log(e);
-				return null;
+				if (File.Exists (fileName))
+				{
+					string s = File.ReadAllText(fileName);
+					LevelEditorSerializable data;
+					try
+					{
+						instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
+					}
+					catch (System.Exception e)
+					{
+						Debug.Log(e);
+					}
+					yield return instance;
+					}
+				else
+				{
+					Debug.LogError("Level didn't find on path: "+fileName);
+				 yield	return null;
+				}
 			}
-			return data;
-		}
-		else
-		{
-			Debug.LogError("Level didn't find on path: "+fileName);
-			return null;
 		}
 	}
 
 	public void Save(bool rewrite = false)
 	{
 		string fileName = "";
-		if (Application.platform == RuntimePlatform.WindowsEditor)
-			fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Levels/" ,"Level " ,curentLvl.ToString(),".txt");
-		else if(Application.platform == RuntimePlatform.Android)
-			fileName =String.Concat("jar:file://" , Application.dataPath , "!/assets/Levels/" ,"Level " ,curentLvl.ToString(),".txt");
+		fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/StreamingAssets/" ,"Level " ,curentLvl.ToString(),".txt");
 		if (!CheckFile (fileName) || rewrite)
 			WriteToFile (JsonMapper.ToJson (new LevelEditorSerializable (this)), fileName);
 		else

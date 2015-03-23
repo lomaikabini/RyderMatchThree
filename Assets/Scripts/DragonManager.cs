@@ -49,7 +49,7 @@ public class DragonManager : MonoBehaviour {
 		{
 			movingCount++;
 			StartCoroutine(ScaleUpObj(list[i]));
-			yield return new WaitForSeconds(0.1f);
+			yield return new WaitForSeconds(0.2f);
 		}
 		yield return null;
 	}
@@ -59,12 +59,15 @@ public class DragonManager : MonoBehaviour {
 		float cof = 0f;
 		Vector3 startScale = new Vector3 (1f, 1f, 1f);
 		Vector3 targetScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		Vector3 startPos = t.transform.localPosition;
+		Vector3 endPos = t.transform.localPosition + new Vector3 (0f, -50f, 0f);
 		t.transform.SetSiblingIndex (999);
 		while(cof < 1f)
 		{
 			cof +=Time.deltaTime*6f;
 			cof = Mathf.Min(cof,1f);
 			t.transform.localScale = Vector3.Lerp(startScale,targetScale,cof);
+			t.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
 			yield return new WaitForEndOfFrame();
 		}
 		StartCoroutine (GoToDragon (t));
@@ -100,14 +103,14 @@ public class DragonManager : MonoBehaviour {
 	}
 	IEnumerator attackWizard()
 	{
-		yield return new WaitForSeconds (0.25f);
+		yield return new WaitForSeconds (0.1f);
 		HideShowedBoosters();
 		Game.instance.ContinueGame();
 		yield return null;
 	}
 	IEnumerator DropBooster(KeyValuePair<Dragon,FieldItem> itm)
 	{
-		yield return new WaitForSeconds (0.7f);
+		yield return new WaitForSeconds (0.2f);
 		GameObject boosterView = Instantiate (boosterPrefab, Vector3.zero, Quaternion.identity) as GameObject;
 		Image img = boosterView.GetComponent<Image> ();
 		img.sprite = bubblePrefab.GetComponent<Bubble> ().GetBoosterSpriteByType (itm.Key.type, itm.Key.boosterType);
@@ -140,7 +143,6 @@ public class DragonManager : MonoBehaviour {
 			boosterView.transform.localScale = Vector3.Lerp(startScale,targetScale,cof);
 			yield return new WaitForEndOfFrame();
 		}
-		yield return new WaitForSeconds (0.1f);
 		itm.Value.SetType (itm.Key.type, Game.instance.bubbleSize, itm.Key.boosterType);
 		Destroy (boosterView);
 		movingBoosters--;
