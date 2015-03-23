@@ -12,7 +12,7 @@ public class DragonManager : MonoBehaviour {
 	private int movingCount = 0;
 	private int movingBoosters = 0;
 	private List<FieldItem> matchBubbles;
-	private List<KeyValuePair<Dragon,FieldItem>> dropBoosters = new List<KeyValuePair<Dragon,FieldItem>>();
+	public List<KeyValuePair<Dragon,FieldItem>> dropBoosters = new List<KeyValuePair<Dragon,FieldItem>>();
 
 	void Awake()
 	{
@@ -149,7 +149,8 @@ public class DragonManager : MonoBehaviour {
 		if(movingBoosters==0)
 		{
 			dropBoosters.RemoveRange(0,dropBoosters.Count);
-			Game.instance.ReleaseGame ();
+			Game.instance.checkPossibleMatch();
+			//Game.instance.ReleaseGame ();
 		}
 		yield return null;
 	}
@@ -161,7 +162,6 @@ public class DragonManager : MonoBehaviour {
 		{
 			for(int i = 0; i < dropBoosters.Count;i++)
 			{
-				//dropBoosters[i].Value.SetType(dropBoosters[i].Key.type,Game.instance.bubbleSize,dropBoosters[i].Key.boosterType);
 				dropBoosters[i].Key.overlayFact.fillAmount = 1f;
 				movingBoosters++;
 				StartCoroutine(DropBooster(dropBoosters[i]));

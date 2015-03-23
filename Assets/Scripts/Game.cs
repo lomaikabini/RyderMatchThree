@@ -54,7 +54,7 @@ public class Game : MonoBehaviour {
 	private List<FieldItem> matchBubbles =  new List<FieldItem>();
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
 	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
-	private List<Vector2> boosetEffectPos;
+	private List<Vector2> boosterEffectPos;
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 	private GameData data;
 
@@ -313,73 +313,35 @@ public class Game : MonoBehaviour {
 			cells[i,j].SetBoosterEffect(false);
 		}
 		if(bType == Bubble.BoosterType.none) return;
-		boosetEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
-		for(int i = 0 ; i < boosetEffectPos.Count; i++)
+		boosterEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
+		int val;
+		List<Vector2> usedBoosters = new List<Vector2> ();
+		do {
+			val = boosterEffectPos.Count;
+			List<Vector2> tmp = new List<Vector2>();
+			for(int i = 0;i < val; i++)
+			{
+				int x  =(int) boosterEffectPos[i].x;
+				int y = (int) boosterEffectPos[i].y;
+				if(bubbles[x,y] != null && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)
+				{
+					usedBoosters.Add(boosterEffectPos[i]);
+					List<Vector2> list = getPositionForBoosetrEffect (bubbles[x,y].bubbleScript.boosterType, x, y);
+					for(int j = 0; j < list.Count;j++)
+						tmp.Add(list[j]);
+				}
+			}
+			for(int i = 0; i < tmp.Count; i++)
+			{
+				boosterEffectPos.Add(tmp[i]);
+			}
+		} while(val != boosterEffectPos.Count);
+
+
+		for(int i = 0 ; i < boosterEffectPos.Count; i++)
 		{
-			cells[(int)boosetEffectPos[i].x,(int)boosetEffectPos[i].y].SetBoosterEffect(true);
+			cells[(int)boosterEffectPos[i].x,(int)boosterEffectPos[i].y].SetBoosterEffect(true);
 		}
-//		int posX = matchBubbles [matchBubbles.Count - 1].posX;
-//		int posY = matchBubbles [matchBubbles.Count - 1].posY;
-//		int size = BoosterManager.boosterSizes [bType];
-//		if(bType == Bubble.BoosterType.threeQuad)
-//		{
-//			for(int i = posX - ((size-1)/2);i <= posX+((size-1)/2);i++)
-//				for(int j = posY - ((size-1)/2);j <= posY+((size-1)/2);j++)
-//			{
-//				if(i >= 0 && i < TableSize && j >=0 && j < TableSize)
-//					cells[i,j].SetBoosterEffect(true);
-//			}
-//		}
-//		else if (bType == Bubble.BoosterType.diagonals) 
-//		{
-//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
-//			{
-//				if((posX+i) >= 0 && (posX+i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
-//					cells[posX+i,posY+i].SetBoosterEffect(true);
-//			}
-//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
-//			{
-//				if((posX-i) >= 0 && (posX-i) < TableSize && (posY+i)>=0 && (posY+i) < TableSize)
-//					cells[posX-i,posY+i].SetBoosterEffect(true);
-//			}
-//		}
-//		else if(bType == Bubble.BoosterType.horizontal)
-//		{
-//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
-//			{
-//				if((posX+i) >= 0 && (posX+i) < TableSize)
-//					cells[posX+i,posY].SetBoosterEffect(true);
-//			}
-//		}
-//		else if(bType == Bubble.BoosterType.vertical)
-//		{
-//			for(int i = - ((size-1)/2);i <= ((size-1)/2);i++)
-//			{
-//				if((posX+i) >= 0 && (posX+i) < TableSize)
-//					cells[posX,posY+i].SetBoosterEffect(true);
-//			}
-//		}
-//		else if(bType == Bubble.BoosterType.rnd)
-//		{
-//			List<Vector2> positions = new List<Vector2>();
-//			List<Vector2> availablePositions = new List<Vector2>();
-//			for(int i = 0; i < TableSize; i++)
-//				for(int j = 0; j < TableSize; j++)
-//			{
-//				if(bubbles[i,j] != null && bubbles[i,j].type != FieldItem.Type.item)
-//					availablePositions.Add(new Vector2((float)i,(float)j));
-//			}
-//			for(int i = 0; i < size; i++)
-//			{
-//				Vector2 pos = availablePositions[UnityEngine.Random.Range(0, availablePositions.Count)];
-//				availablePositions.Remove(pos);
-//				positions.Add(pos);
-//			}
-//			for(int i = 0; i < positions.Count; i++)
-//			{
-//				cells[(int)positions[i].x,(int)positions[i].y].SetBoosterEffect(true);
-//			}
-//		}
 	}
 
 	List<Vector2> getPositionForBoosetrEffect(Bubble.BoosterType bType,int posX, int posY)
@@ -447,8 +409,21 @@ public class Game : MonoBehaviour {
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
+			if(boosterEffectPos != null)
+			{
+				for(int i = 0; i < boosterEffectPos.Count;i++)
+				{
+					int x =(int) boosterEffectPos[i].x;
+					int y =(int) boosterEffectPos[i].y;
+					if(bubbles[x,y] != null)
+					{
+						matchBubbles.Add(bubbles[x,y]);
+						bubbles[x,y].RealeaseItem();
+					}
+				}
+			}
 			destroyFoundBubbles (matchBubbles);
-		} else 
+		} else if(gameState == GameState.bubblePressed)
 		{
 			gameState = GameState.free;
 			for(int i = 0; i < matchBubbles.Count; i++)
@@ -457,6 +432,8 @@ public class Game : MonoBehaviour {
 			DragonManager.instance.HideShowedBoosters();
 		}
 		showBoosteEffect(Bubble.BoosterType.none);
+		if(boosterEffectPos != null)
+			boosterEffectPos.RemoveRange(0, boosterEffectPos.Count);
 		showAllBubbles();
 		removeAllJoints ();
 	}
@@ -551,8 +528,8 @@ public class Game : MonoBehaviour {
 	void destroyFoundBubbles (List<FieldItem> list)
 	{
 		removeDublicate (ref list);
-		explositionNearBlocks (list);
 		explositionNearSeparators (list);
+		explositionNearBlocks (list);
 		for(int i = 0;i < list.Count; i++)
 		{
 			FieldItem bubble = bubbles[list[i].posX,list[i].posY];
@@ -626,6 +603,7 @@ public class Game : MonoBehaviour {
 		for(int i = 0; i < list.Count; i++)
 		{
 			FieldItem b = list[i];
+			giveDamageForCell(ref usedCells,cells[b.posX,b.posY]);
 			if(b.posY + 1 < TableSize)
 				giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
 			if(b.posY - 1 >= 0)
@@ -773,6 +751,7 @@ public class Game : MonoBehaviour {
 			if(moveBubbles[i].posY < lastBubblePosY)
 				lastBubblePosY = moveBubbles[i].posY; 
 		}
+		gameState = GameState.InAction;
 		for(int i = 0; i < count; i++)
 		{
 			bubblesInAction++;
@@ -1026,10 +1005,6 @@ public class Game : MonoBehaviour {
 				}
 			}
 		}
-//		if(bubblesInAction== 0)
-//		{
-//			checkPossibleMatch();
-//		}
 	}
 
 	bool collumIsFreeByCell(int coll , int row)
@@ -1271,7 +1246,7 @@ public class Game : MonoBehaviour {
 		foundItm [2].playChosedAnim ();
 		yield return null;
 	}
-	void checkPossibleMatch()
+	public void checkPossibleMatch()
 	{
 		for(int i =0; i < TableSize;i++)
 			for(int j =0; j < TableSize; j++)

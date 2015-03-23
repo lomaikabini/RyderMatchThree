@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class BoosterManager : MonoBehaviour {
-	[HideInInspector]
-	public int[] itemsRequire = {16,16,16,16,16};
+	
+	public int[] itemsRequire = {12,12,12,12,12};
 	[HideInInspector]
 	public int[] itemsCollect = {0,0,0,0,0};
 
