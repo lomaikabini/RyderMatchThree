@@ -528,8 +528,10 @@ public class Game : MonoBehaviour {
 	void destroyFoundBubbles (List<FieldItem> list)
 	{
 		removeDublicate (ref list);
-		explositionNearSeparators (list);
-		explositionNearBlocks (list);
+		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
+//		foreach (KeyValuePair<Vector2,Vector2> k in blockedCells)
+//			Debug.Log (k.Key + "   " + k.Value);
+		explositionNearBlocks (list,blockedCells);
 		for(int i = 0;i < list.Count; i++)
 		{
 			FieldItem bubble = bubbles[list[i].posX,list[i].posY];
@@ -555,23 +557,35 @@ public class Game : MonoBehaviour {
 		yield return null;
 	}
 
-	void explositionNearSeparators (List<FieldItem> list)
+	List<KeyValuePair<Vector2,Vector2>> explositionNearSeparators (List<FieldItem> list)
 	{
+		List<KeyValuePair<Vector2,Vector2>> result = new List<KeyValuePair<Vector2,Vector2>> ();
 		List<Separator> usedSeparators = new List<Separator> ();
 		for (int i = 0; i < list.Count; i++) 
 		{
 			FieldItem b = list [i];
-			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.horizontal);
-			giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.vertical);
+			if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.horizontal)){
+				result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)(b.posY-1))));
+			}
+			if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.vertical)){
+				result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX+1,(float)(b.posY))));
+			}
 
-			if(b.posY + 1 < TableSize)
-				giveDamageForSeparator(ref usedSeparators,b.posX,b.posY + 1,Separator.Type.horizontal);
-			if(b.posX - 1 >= 0)
-				giveDamageForSeparator(ref usedSeparators,b.posX - 1,b.posY,Separator.Type.vertical);
+			if(b.posY + 1 < TableSize){
+				if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY + 1,Separator.Type.horizontal)){
+					result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)(b.posY+1))));
+				}
+			}
+			if(b.posX - 1 >= 0){
+				if(giveDamageForSeparator(ref usedSeparators,b.posX - 1,b.posY,Separator.Type.vertical)){
+					result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX-1,(float)(b.posY))));
+				}
+			}
 		}
+		return result;
 	}
 
-	void giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type)
+	bool giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type)
 	{
 		Separator separ;
 		if (type == Separator.Type.vertical)
@@ -594,24 +608,39 @@ public class Game : MonoBehaviour {
 					separatorsHorizontal[x,y] = null;
 				}
 			}
+			return true;
 		}
+		return false;
 	}
 
-	void explositionNearBlocks(List<FieldItem> list)
+	void explositionNearBlocks(List<FieldItem> list,List<KeyValuePair<Vector2,Vector2>> blockedCells)
 	{
 		List<Cell> usedCells = new List<Cell> ();
 		for(int i = 0; i < list.Count; i++)
 		{
 			FieldItem b = list[i];
+			KeyValuePair<Vector2,Vector2> k;
 			giveDamageForCell(ref usedCells,cells[b.posX,b.posY]);
-			if(b.posY + 1 < TableSize)
-				giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
-			if(b.posY - 1 >= 0)
-				giveDamageForCell(ref usedCells,cells[b.posX,b.posY - 1]);
-			if(b.posX + 1 < TableSize)
-				giveDamageForCell(ref usedCells,cells[b.posX + 1,b.posY]);
-			if(b.posX - 1 >= 0)
-				giveDamageForCell(ref usedCells,cells[b.posX - 1,b.posY]);
+			if(b.posY + 1 < TableSize){
+				k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)b.posY+1));
+				if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+					giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
+			}
+			if(b.posY - 1 >= 0){
+				k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)b.posY-1));
+				if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+					giveDamageForCell(ref usedCells,cells[b.posX,b.posY - 1]);
+			}
+			if(b.posX + 1 < TableSize){
+				k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX+1,(float)b.posY));
+				if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+					giveDamageForCell(ref usedCells,cells[b.posX + 1,b.posY]);
+			}
+			if(b.posX - 1 >= 0){
+				k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX-1,(float)b.posY));
+				if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+					giveDamageForCell(ref usedCells,cells[b.posX - 1,b.posY]);
+			}
 		}
 	}
 
