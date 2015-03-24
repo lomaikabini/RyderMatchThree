@@ -171,7 +171,6 @@ public class DragonManager : MonoBehaviour {
 	public void ShowBooster(FieldItem.Type t)
 	{
 		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
-		float value = 1f / maxCount;
 		Dragon dragon = dragons.Find(o => o.type == t);
 		dragon.overlayCurrent.fillAmount = dragon.overlayFact.fillAmount;
 		IncreaseIndicatorCurrent (t);

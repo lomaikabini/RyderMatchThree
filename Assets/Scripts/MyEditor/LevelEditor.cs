@@ -109,7 +109,6 @@ public class LevelEditor
 				if (File.Exists (fileName))
 				{
 					string s = File.ReadAllText(fileName);
-					LevelEditorSerializable data;
 					try
 					{
 						instance = JsonMapper.ToObject<LevelEditorSerializable>(s);

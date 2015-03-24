@@ -55,11 +55,12 @@ public class Separator : MonoBehaviour {
 			rectTransform.sizeDelta = new Vector2 (rectTransform.sizeDelta.x, size);
 	}
 
-	public bool GiveDamage ()
+	public bool GiveDamage (int count = 1)
 	{
 		if(kit.destroyType == DestroyType.destroy)
 		{
-			lives --;
+			lives -=count;
+			lives = Mathf.Max(0,lives);
 			if(lives == 0)
 			{
 				return true;

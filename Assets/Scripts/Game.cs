@@ -8,7 +8,6 @@ using UnityEngine.UI;
 public class Game : MonoBehaviour {
 
 	public int TableSize;
-	public int ScoresPerBubble;
 	[HideInInspector]
 	public float bubbleSize;
 	public float BubblePadding;
@@ -44,6 +43,7 @@ public class Game : MonoBehaviour {
 
 	private int bubblesInAction = 0;
 	private int lastBubblePosY;
+	private int moves;
 
 	private Cell[,] cells;
 	private FieldItem[,] bubbles;
@@ -56,6 +56,7 @@ public class Game : MonoBehaviour {
 	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
 	private List<Vector2> boosterEffectPos;
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
+	private Dictionary<string,int> goals;
 	private GameData data;
 
 	public static Game instance;
@@ -107,6 +108,8 @@ public class Game : MonoBehaviour {
 		IEnumerator e = o.loadDataLvl (data.currentLvl);
 		yield return StartCoroutine (e);
 		LevelEditor.LevelEditorSerializable config = o.instance;
+		moves = config.moves;
+		UIManager.instance.SetMovesView (moves);
 		for(int i = 0; i < config.cells.Count; i++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -156,8 +159,46 @@ public class Game : MonoBehaviour {
 		for (int i = 0; i < config.availableTypes.Count; i++)
 			availableTypes.Add (config.availableTypes [i]);
 
-		//generaciya ostavwixsya bablov
 		dropNewBalls ();
+
+		goals = new Dictionary<string, int> (config.goals);
+		Bubble bubbleScript = BubblePool.Get().ItemPrefab.GetComponent<Bubble>();
+		Item itemScript = BubblePool.Get().ItemPrefab.GetComponent<Item>();
+		Cell cellScript = cells [0, 0];
+		foreach(KeyValuePair<string,int> k in goals)
+		{
+			Sprite sp = null;
+			try
+			{
+				FieldItem.Type itm = ParseEnum<FieldItem.Type>(k.Key);
+				sp = bubbleScript.bubbleImages.Find(i => {return i.name == "bubble_"+itm.ToString()? i : null;});
+			}
+			catch
+			{
+				try
+				{
+					Item.ItemType itemType = ParseEnum<Item.ItemType>(k.Key);
+					sp = itemScript.spritesIdle.Find(i => {return i.name == "item_"+itemType.ToString()? i : null;});
+				}
+				catch
+				{
+					try
+					{
+						Cell.Type cellType = ParseEnum<Cell.Type>(k.Key);
+						Cell.Sprites sprites = cellScript.getKitByType(cellType);
+						sp = sprites.sprites[0];
+					}
+					catch
+					{
+						Debug.LogError("Goal type didn't find!!!");
+					}
+				}
+			}
+			UIManager.instance.InstantiateGoal(k.Key,sp,k.Value);
+			
+		}
+
+
 		for(int i =0; i < moveBubbles.Count;i++)
 		{
 			insertItemInTable(moveBubbles[i],bubbleSize);
@@ -165,6 +206,10 @@ public class Game : MonoBehaviour {
 			moveBubbles[i].whereMove.Add(new KeyValuePair<float, Vector2>(1f,new Vector2((float)moveBubbles[i].posX,(float)moveBubbles[i].posY)));
 		}
 		StartCoroutine (throwStartBubbles ());
+	}
+	public T ParseEnum<T>( string value )
+	{
+		return (T) Enum.Parse( typeof( T ), value, true );
 	}
 	IEnumerator throwStartBubbles()
 	{
@@ -423,6 +468,7 @@ public class Game : MonoBehaviour {
 				}
 			}
 			destroyFoundBubbles (matchBubbles);
+			moves--;
 		} else if(gameState == GameState.bubblePressed)
 		{
 			gameState = GameState.free;
@@ -528,20 +574,18 @@ public class Game : MonoBehaviour {
 	void destroyFoundBubbles (List<FieldItem> list)
 	{
 		removeDublicate (ref list);
+		if(boosterEffectPos != null)
+			explositionFromBooster (boosterEffectPos);
 		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
-//		foreach (KeyValuePair<Vector2,Vector2> k in blockedCells)
-//			Debug.Log (k.Key + "   " + k.Value);
 		explositionNearBlocks (list,blockedCells);
 		for(int i = 0;i < list.Count; i++)
 		{
-			FieldItem bubble = bubbles[list[i].posX,list[i].posY];
 			bubbles[list[i].posX,list[i].posY] = null;
-			//BubblePool.Get().Push(bubble.gameObject);
 		}
 		DragonManager.instance.GetDragonItems (list);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
-		//StartCoroutine (dropBallsWithDelay (1f));
 	}
+	
 	public void ContinueGame()
 	{
 		matchBubbles.RemoveRange(0, matchBubbles.Count);
@@ -557,6 +601,38 @@ public class Game : MonoBehaviour {
 		yield return null;
 	}
 
+	void explositionFromBooster (List<Vector2> list)
+	{
+		List<Separator> usedSeparators = new List<Separator> ();
+		List<Cell> usedCells = new List<Cell> ();
+		for (int i = 0; i < list.Count; i++) 
+		{
+			Vector2 b = list [i];
+			giveDamageForSeparator(ref usedSeparators,(int)b.x,(int)b.y,Separator.Type.horizontal,999);
+			giveDamageForSeparator(ref usedSeparators,(int)b.x,(int)b.y,Separator.Type.vertical,999);
+			if((int)b.y + 1 < TableSize){
+				giveDamageForSeparator(ref usedSeparators,(int)b.x,(int)b.y + 1,Separator.Type.horizontal,999);
+			}
+			if((int)b.y - 1 >= 0){
+				giveDamageForSeparator(ref usedSeparators,(int)b.x - 1,(int)b.y,Separator.Type.vertical,999);
+			}
+
+			giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y],999);
+			if((int)b.y + 1 < TableSize){
+				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y + 1],999);
+			}
+			if((int)b.y - 1 >= 0){
+				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y - 1],999);
+			}
+			if((int)b.x + 1 < TableSize){
+				giveDamageForCell(ref usedCells,cells[(int)b.x + 1,(int)b.y],999);
+			}
+			if((int)b.x - 1 >= 0){
+				giveDamageForCell(ref usedCells,cells[(int)b.x - 1,(int)b.y],999);
+			}
+		}
+	}
+	
 	List<KeyValuePair<Vector2,Vector2>> explositionNearSeparators (List<FieldItem> list)
 	{
 		List<KeyValuePair<Vector2,Vector2>> result = new List<KeyValuePair<Vector2,Vector2>> ();
@@ -585,8 +661,10 @@ public class Game : MonoBehaviour {
 		return result;
 	}
 
-	bool giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type)
+	bool giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type,int damage = 1)
 	{
+		if (x > TableSize || x < 0 || y > TableSize || y < 0)
+			return false;
 		Separator separ;
 		if (type == Separator.Type.vertical)
 			separ = separatorsVertical [x, y];
@@ -595,7 +673,7 @@ public class Game : MonoBehaviour {
 		if(!usedSeparators.Exists (e => e == separ) && separ !=null)
 		{
 			usedSeparators.Add(separ);
-			if(separ.GiveDamage())
+			if(separ.GiveDamage(damage))
 			{
 				if(type == Separator.Type.vertical)
 				{
@@ -644,12 +722,12 @@ public class Game : MonoBehaviour {
 		}
 	}
 
-	void giveDamageForCell(ref List<Cell> usedCells, Cell c)
+	void giveDamageForCell(ref List<Cell> usedCells, Cell c,int damage = 1)
 	{
 		if(!usedCells.Exists (e => e == c))
 		{
 			usedCells.Add(c);
-			c.GiveDamage();
+			c.GiveDamage(damage);
 		}
 	}
 
@@ -716,8 +794,8 @@ public class Game : MonoBehaviour {
 					tmpY--;
 					positions.Add(new KeyValuePair<float, Vector2>(1, new Vector2((float) (tmpX),(float) (tmpY))));
 				}
+
 			}
-			
 			while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
 			      && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY] != null)&& !(separatorsVertical[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY-1] != null)
 			      && !(separatorsHorizontal[tmpX+1,tmpY] != null && separatorsVertical[tmpX,tmpY-1]!=null) && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsHorizontal[tmpX+1,tmpY] != null))
@@ -1319,7 +1397,16 @@ public class Game : MonoBehaviour {
 	}
 	public void ReleaseGame()
 	{
+		UIManager.instance.SetMovesView (moves);
+		if(moves == 0)
+		{
+			gameOver();
+		}
 		gameState = GameState.free;
+	}
+	void gameOver()
+	{
+		Debug.Log("Game Over");
 	}
 	void mixBubbles ()
 	{

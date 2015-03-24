@@ -81,11 +81,12 @@ public class Cell : MonoBehaviour {
 		return default(Sprites);
 	}
 
-	public void GiveDamage()
+	public void GiveDamage(int damage)
 	{
 		if(kit.destroyType == Sprites.DestroyType.destroy && cellType != Type.empty)
 		{
-			lvl--;
+			lvl -= damage;
+			lvl = Mathf.Max(0,lvl);
 			if(lvl == 0)
 				SetType(Type.empty);
 			else
