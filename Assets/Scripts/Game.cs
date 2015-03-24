@@ -616,10 +616,10 @@ public class Game : MonoBehaviour {
 	void explositionNearBlocks(List<FieldItem> list,List<KeyValuePair<Vector2,Vector2>> blockedCells)
 	{
 		List<Cell> usedCells = new List<Cell> ();
+		KeyValuePair<Vector2,Vector2> k;
 		for(int i = 0; i < list.Count; i++)
 		{
 			FieldItem b = list[i];
-			KeyValuePair<Vector2,Vector2> k;
 			giveDamageForCell(ref usedCells,cells[b.posX,b.posY]);
 			if(b.posY + 1 < TableSize){
 				k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)b.posY+1));
@@ -658,7 +658,8 @@ public class Game : MonoBehaviour {
 		for(int j = 1; j < TableSize; j++)
 			for(int i = 0; i < TableSize; i++)
 		{
-			if(separatorsHorizontal[i,j] != null) continue;
+			//TODO: xyi znaet mojet ewe naod bydet
+			//if(separatorsHorizontal[i,j] != null) continue;
 			int indx = j;
 			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty && separatorsHorizontal[i,indx] == null)
 			{
@@ -704,9 +705,9 @@ public class Game : MonoBehaviour {
 			dir = -1;
 		slipStart1:
 				while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-				      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
+				      && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsVertical[tmpX-1,tmpY] != null) && !(separatorsVertical[tmpX-1,tmpY] != null && separatorsVertical[tmpX-1,tmpY-1] != null)
+				      && !(separatorsHorizontal[tmpX-1,tmpY]!=null && separatorsVertical[tmpX-1,tmpY-1] != null ) && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsHorizontal[tmpX-1,tmpY] != null))
 			{
-				//dir = -1;
 				tmpX = tmpX-1;
 				tmpY = tmpY-1;
 				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
@@ -718,9 +719,9 @@ public class Game : MonoBehaviour {
 			}
 			
 			while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-			      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
+			      && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY] != null)&& !(separatorsVertical[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY-1] != null)
+			      && !(separatorsHorizontal[tmpX+1,tmpY] != null && separatorsVertical[tmpX,tmpY-1]!=null) && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsHorizontal[tmpX+1,tmpY] != null))
 			{
-				//dir = 1;
 				tmpX = tmpX+1;
 				tmpY = tmpY-1;
 				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
@@ -738,9 +739,9 @@ public class Game : MonoBehaviour {
 		slipStart2:
 				
 				while(tmpX+1 < TableSize && tmpY-1 >=0 && bubbles[tmpX+1,tmpY-1] == null && !collumIsFree(tmpX+1,tmpY-1) && cells[tmpX+1,tmpY-1].cellType == Cell.Type.empty 
-				      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX+1,tmpY].cellType == Cell.Type.empty  || separatorsVertical[tmpX,tmpY] == null) && separatorsVertical[tmpX,tmpY-1] == null))
+				      &&  !(separatorsHorizontal[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY] !=null) &&!(separatorsVertical[tmpX,tmpY] != null && separatorsVertical[tmpX,tmpY-1] != null)
+				      && !(separatorsHorizontal[tmpX+1,tmpY] != null && separatorsVertical[tmpX,tmpY-1]!=null) && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsHorizontal[tmpX+1,tmpY] != null))
 			{
-				//dir = 1;
 				tmpX = tmpX+1;
 				tmpY = tmpY-1;
 				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
@@ -752,9 +753,9 @@ public class Game : MonoBehaviour {
 				
 			}
 			while(tmpX-1 >= 0 && tmpY-1 >=0 && bubbles[tmpX-1,tmpY-1] == null && !collumIsFree(tmpX-1,tmpY-1) && cells[tmpX-1,tmpY-1].cellType == Cell.Type.empty 
-			      && separatorsHorizontal[tmpX,tmpY] == null &&((cells[tmpX-1,tmpY].cellType == Cell.Type.empty || separatorsVertical[tmpX-1,tmpY] == null) && separatorsVertical[tmpX-1,tmpY-1] == null))
+			      && !(separatorsHorizontal[tmpX,tmpY] != null && separatorsVertical[tmpX-1,tmpY] != null) &&!(separatorsVertical[tmpX-1,tmpY] != null && separatorsVertical[tmpX-1,tmpY-1] != null)
+			      && !(separatorsHorizontal[tmpX-1,tmpY]!=null && separatorsVertical[tmpX-1,tmpY-1] != null )&& !(separatorsHorizontal[tmpX,tmpY] != null && separatorsHorizontal[tmpX-1,tmpY] != null))
 			{
-				//dir = -1;
 				tmpX = tmpX-1;
 				tmpY = tmpY-1;
 				positions.Add(new KeyValuePair<float, Vector2>(slipStep, new Vector2((float) (tmpX),(float) (tmpY))));
@@ -1064,7 +1065,7 @@ public class Game : MonoBehaviour {
 		for(int i = row; i < TableSize; i++)
 		{
 			if(cells[coll,i].cellType != Cell.Type.empty) return false;
-			if(separatorsHorizontal[coll,i] != null) return false;
+			if(i+1 < TableSize && separatorsHorizontal[coll,i+1] != null) return false;
 		}
 
 		return true;
