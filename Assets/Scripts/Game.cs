@@ -450,12 +450,25 @@ public class Game : MonoBehaviour {
 				int x  =(int) boosterEffectPos[i].x;
 				int y = (int) boosterEffectPos[i].y;
 		
-				if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)
+				if(bubbles[x,y] != null && (((bubbles[x,y].type != FieldItem.Type.item) && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)||(bubbles[x,y].type == FieldItem.Type.item && bubbles[x,y].itemScript.itemType == Item.ItemType.bomb)))
 				{
-					usedBoosters.Add(boosterEffectPos[i]);
-					List<Vector2> list = getPositionForBoosetrEffect (bubbles[x,y].bubbleScript.boosterType, x, y);
-					for(int j = 0; j < list.Count;j++)
-						tmp.Add(list[j]);
+					if(bubbles[x,y].type == FieldItem.Type.item && bubbles[x,y].itemScript.itemType == Item.ItemType.bomb)
+					{
+						for(int k = 0; k < TableSize; k++)
+							for(int j = 0; j < TableSize; j++)
+						{
+							//if(k==TableSize-1 && j == TableSize-1) goto end;
+								boosterEffectPos.Add(new Vector2((float)k,(float)j));
+						}
+						goto end;
+					}
+					else 
+					{
+						usedBoosters.Add(boosterEffectPos[i]);
+						List<Vector2> list = getPositionForBoosetrEffect (bubbles[x,y].bubbleScript.boosterType, x, y);
+						for(int j = 0; j < list.Count;j++)
+							tmp.Add(list[j]);
+					}
 				}
 			}
 			for(int i = 0; i < tmp.Count; i++)
@@ -464,7 +477,8 @@ public class Game : MonoBehaviour {
 			}
 		} while(val != boosterEffectPos.Count);
 
-
+		end:
+			Debug.Log ("boosteeffectcount = " + boosterEffectPos.Count);
 		for(int i = 0 ; i < boosterEffectPos.Count; i++)
 		{
 			cells[(int)boosterEffectPos[i].x,(int)boosterEffectPos[i].y].SetBoosterEffect(true);

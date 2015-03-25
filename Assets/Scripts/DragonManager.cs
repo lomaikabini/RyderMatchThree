@@ -39,7 +39,7 @@ public class DragonManager : MonoBehaviour {
 	}
 	public void GetDragonItems(List<FieldItem> list)
 	{
-		matchBubbles = list;
+		matchBubbles =new List<FieldItem>(list);
 		StartCoroutine (moveObjectsToDragons (list));
 	}
 	IEnumerator moveObjectsToDragons(List<FieldItem> list)
@@ -76,16 +76,16 @@ public class DragonManager : MonoBehaviour {
 			movingCount--;
 			if(movingCount == 0)
 			{
+				BubblePool.Get ().Push (t.gameObject);
 				StartCoroutine(attackWizard());
-				BoosterManager.instance.AddCollectItems(matchBubbles);
 			}
-			BubblePool.Get ().Push (t.gameObject);
 		}
 		yield return null;
 	}
 	IEnumerator GoToDragon(FieldItem t)
 	{
 		yield return new WaitForEndOfFrame ();
+
 		float cof = 0f;
 		Vector3 startScale = new Vector3 (1.5f, 1.5f, 1.5f);
 		Vector3 targetScale = new Vector3 (1f, 1f, 1f);
@@ -98,7 +98,7 @@ public class DragonManager : MonoBehaviour {
 			cof = Mathf.Min(cof,1f);
 			t.transform.localScale = Vector3.Lerp(startScale,targetScale,cof);
 			t.transform.position = Vector3.Lerp(startPos,targetPos,cof);
-			yield return new WaitForEndOfFrame();
+			yield return null;
 		}
 		IncreaseIndicatorFact (t.type);
 		movingCount--;
@@ -106,8 +106,6 @@ public class DragonManager : MonoBehaviour {
 		if(movingCount == 0)
 		{
 			StartCoroutine(attackWizard());
-			BoosterManager.instance.AddCollectItems(matchBubbles);
-			//Game.instance.ContinueGame();
 		}
 		yield return null;
 	}
@@ -116,6 +114,7 @@ public class DragonManager : MonoBehaviour {
 		yield return new WaitForSeconds (0.1f);
 		HideShowedBoosters();
 		Game.instance.ContinueGame();
+		BoosterManager.instance.AddCollectItems (matchBubbles);
 		yield return null;
 	}
 	IEnumerator DropBooster(KeyValuePair<Dragon,FieldItem> itm)
