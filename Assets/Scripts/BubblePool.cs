@@ -65,5 +65,6 @@ public class BubblePool : MonoBehaviour {
 		pool.Add (obj);
 		obj.transform.SetParent(transform);
 		obj.transform.localPosition = Vector3.zero;
+		obj.transform.localScale = new Vector3 (1f, 1f, 1f);
 	}
 }

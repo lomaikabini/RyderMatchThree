@@ -81,17 +81,22 @@ public class Cell : MonoBehaviour {
 		return default(Sprites);
 	}
 
-	public void GiveDamage(int damage)
+	public bool GiveDamage(int damage, ref string t)
 	{
 		if(kit.destroyType == Sprites.DestroyType.destroy && cellType != Type.empty)
 		{
 			lvl -= damage;
 			lvl = Mathf.Max(0,lvl);
 			if(lvl == 0)
+			{
+				t = cellType.ToString();
 				SetType(Type.empty);
+				return true;
+			}
 			else
 				img.sprite =  kit.sprites[kit.sprites.Length - lvl];
 		}
+		return false;
 	}
 	public void SetBoosterEffect(bool val)
 	{

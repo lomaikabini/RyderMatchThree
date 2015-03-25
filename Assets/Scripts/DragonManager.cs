@@ -45,9 +45,9 @@ public class DragonManager : MonoBehaviour {
 	IEnumerator moveObjectsToDragons(List<FieldItem> list)
 	{
 		yield return new WaitForEndOfFrame ();
+		movingCount = list.Count;
 		for(int i =0;i < list.Count;i++)
 		{
-			movingCount++;
 			StartCoroutine(ScaleUpObj(list[i]));
 			yield return new WaitForSeconds(0.2f);
 		}
@@ -70,7 +70,12 @@ public class DragonManager : MonoBehaviour {
 			t.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
 			yield return new WaitForEndOfFrame();
 		}
-		StartCoroutine (GoToDragon (t));
+		if (t.type != FieldItem.Type.item)
+			StartCoroutine (GoToDragon (t));
+		else {
+			movingCount--;
+			BubblePool.Get ().Push (t.gameObject);
+		}
 		yield return null;
 	}
 	IEnumerator GoToDragon(FieldItem t)

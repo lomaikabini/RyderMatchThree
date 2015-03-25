@@ -35,7 +35,7 @@ public class JointsPool : MonoBehaviour {
 			return;
 		}
 		
-		int count = tableSize*tableSize;
+		int count = tableSize*tableSize/2;
 		for(int i = 0 ; i < count; i++)
 		{
 			GameObject obj = Instantiate(ItemPrefab,Vector3.zero,Quaternion.identity) as GameObject;

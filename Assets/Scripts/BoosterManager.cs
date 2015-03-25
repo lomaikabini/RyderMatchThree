@@ -25,7 +25,8 @@ public class BoosterManager : MonoBehaviour {
 	{
 		for(int i = 0; i < items.Count; i++)
 		{
-			itemsCollect[(int)items[i].type]++;
+			if(items[i].type != FieldItem.Type.item)
+				itemsCollect[(int)items[i].type]++;
 		}
 		for(int i = 0; i < itemsCollect.Length;i++)
 		{

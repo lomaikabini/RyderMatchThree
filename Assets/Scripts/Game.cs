@@ -368,7 +368,8 @@ public class Game : MonoBehaviour {
 			{
 				int x  =(int) boosterEffectPos[i].x;
 				int y = (int) boosterEffectPos[i].y;
-				if(bubbles[x,y] != null && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)
+		
+				if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)
 				{
 					usedBoosters.Add(boosterEffectPos[i]);
 					List<Vector2> list = getPositionForBoosetrEffect (bubbles[x,y].bubbleScript.boosterType, x, y);
@@ -582,6 +583,32 @@ public class Game : MonoBehaviour {
 		{
 			bubbles[list[i].posX,list[i].posY] = null;
 		}
+		for(int i = 0;i <  Enum.GetNames(typeof(FieldItem.Type)).Length; i++)
+		{
+			FieldItem.Type t = (FieldItem.Type) i;
+			List<FieldItem> l = list.FindAll(o=>o.type==t);
+			if(t != FieldItem.Type.item)
+			{
+				String sType = t.ToString();
+				if(goals.ContainsKey(sType))
+				{
+					goals[sType] -= l.Count;
+					UIManager.instance.SetGoalView(sType,goals[sType]);
+				}
+			}
+			else
+			{
+				for(int j = 0;j <  Enum.GetNames(typeof(Item.ItemType)).Length; j++)
+				{
+					String sType = ((Item.ItemType)j).ToString();
+					if(goals.ContainsKey(sType))
+					{
+						goals[sType] -= l.Count;
+						UIManager.instance.SetGoalView(sType,goals[sType]);
+					}
+				}
+			}
+		}
 		DragonManager.instance.GetDragonItems (list);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
 	}
@@ -727,7 +754,14 @@ public class Game : MonoBehaviour {
 		if(!usedCells.Exists (e => e == c))
 		{
 			usedCells.Add(c);
-			c.GiveDamage(damage);
+			String type = "";
+			if(c.GiveDamage(damage,ref type)){
+				if(goals.ContainsKey(type))
+				{
+					goals[type] --;
+					UIManager.instance.SetGoalView(type,goals[type]);
+				}
+			}
 		}
 	}
 
@@ -1398,16 +1432,38 @@ public class Game : MonoBehaviour {
 	public void ReleaseGame()
 	{
 		UIManager.instance.SetMovesView (moves);
+		if (checkGoalDone()) {
+			gameDone();
+			//return;
+		}
 		if(moves == 0)
 		{
 			gameOver();
 		}
 		gameState = GameState.free;
 	}
+
+	void gameDone ()
+	{
+		Debug.Log("game done");
+	}
+
+	bool checkGoalDone()
+	{
+		foreach(KeyValuePair<string,int> k in goals)
+		{
+			if(k.Value > 0){
+				return false;
+			} 
+		}
+		return true;
+	}
+
 	void gameOver()
 	{
 		Debug.Log("Game Over");
 	}
+
 	void mixBubbles ()
 	{
 		int[,] newPositions = new int[TableSize, TableSize];

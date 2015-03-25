@@ -31,11 +31,12 @@ public class UIManager : MonoBehaviour {
 		img.sprite = sp;
 		Text tx = img.transform.FindChild ("lbl").GetComponent<Text> ();
 		goals.Add (type, tx);
-		SetDictionaryView (type, count);
+		SetGoalView (type, count);
 	}
 
-	public void SetDictionaryView(string type,int count)
+	public void SetGoalView(string type,int count)
 	{
+		count = Mathf.Max (0, count);
 		goals [type].text = count.ToString ();
 	}
 
