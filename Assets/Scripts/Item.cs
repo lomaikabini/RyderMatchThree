@@ -43,10 +43,10 @@ public class Item : FieldItem {
 	
 	public override void SetChosed ()
 	{
+		playChosedAnim ();
 		Color c = img.color;
 		c.a = 0.8f;
 		img.color = c;
-		Debug.Log("zaaz");
 	}
 
 	public override void SetNotChosed ()

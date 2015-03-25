@@ -74,6 +74,11 @@ public class DragonManager : MonoBehaviour {
 			StartCoroutine (GoToDragon (t));
 		else {
 			movingCount--;
+			if(movingCount == 0)
+			{
+				StartCoroutine(attackWizard());
+				BoosterManager.instance.AddCollectItems(matchBubbles);
+			}
 			BubblePool.Get ().Push (t.gameObject);
 		}
 		yield return null;

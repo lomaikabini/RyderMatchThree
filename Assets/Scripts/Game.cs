@@ -53,6 +53,7 @@ public class Game : MonoBehaviour {
 	private Bubble secondBubble;
 	private List<FieldItem> matchBubbles =  new List<FieldItem>();
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
+	private List<FieldItem> nearMatchItems = new List<FieldItem>();
 	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
 	private List<Vector2> boosterEffectPos;
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
@@ -229,6 +230,7 @@ public class Game : MonoBehaviour {
 						return;
 		bubble.playChosedAnim ();
 		matchBubbles.Add (bubble);
+		checkNearItem(bubble.posX,bubble.posY);
 		bubble.SetChosed ();
 		showBoosteEffect(bubble.bubbleScript.boosterType);
 		gameState = GameState.bubblePressed;
@@ -285,6 +287,7 @@ public class Game : MonoBehaviour {
 			matchBubbles[id].playChosedAnim();
 			DragonManager.instance.DecreaseIndicatorCurrent(matchBubbles[id].type);
 			matchBubbles.Remove(matchBubbles[id]);
+			removeNearItem();
 			Bubble.BoosterType bType = Bubble.BoosterType.none;
 			for(int i = matchBubbles.Count-1; i >= 0; i--)
 			{
@@ -347,7 +350,83 @@ public class Game : MonoBehaviour {
 					j.RunJoint();
 					joints.Add(j);
 				}
+				checkNearItem(bubble.posX,bubble.posY);
 			}
+	}
+
+	void checkNearItem(int posX,int posY)
+	{
+		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item)
+		{
+			bubbles[posX-1,posY].SetChosed();
+			nearMatchItems.Add(bubbles[posX-1,posY]);
+		}
+		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item)
+		{
+			bubbles[posX+1,posY].SetChosed();
+			nearMatchItems.Add(bubbles[posX+1,posY]);
+		}
+		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item)
+		{
+			bubbles[posX,posY - 1].SetChosed();
+			nearMatchItems.Add(bubbles[posX,posY - 1]);
+		}
+		if(posY + 1 < TableSize && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item)
+		{
+			bubbles[posX,posY + 1].SetChosed();
+			nearMatchItems.Add(bubbles[posX,posY + 1]);
+		}
+	}
+
+	void removeNearItem()
+	{
+		List<FieldItem> itmForRemove = new List<FieldItem> ();
+		for (int i = 0; i < nearMatchItems.Count; i++) {
+			FieldItem itm = nearMatchItems[i];
+			bool existConnection = false;
+			for (int j = 0; j < matchBubbles.Count; j++) {
+				if((Mathf.Abs(itm.posX - matchBubbles[i].posX)== 1 && Mathf.Abs(itm.posY - matchBubbles[i].posY) == 0) ||
+				   (Mathf.Abs(itm.posX - matchBubbles[i].posX)== 0 && Mathf.Abs(itm.posY - matchBubbles[i].posY) == 1))
+				{
+					existConnection = true;
+					break;
+				}
+			}
+			if(!existConnection)
+				itmForRemove.Add(itm);
+		}
+
+		for(int i =0; i < itmForRemove.Count; i++)
+		{
+			nearMatchItems.Remove(itmForRemove[i]);
+			itmForRemove[i].SetNotChosed();
+			itmForRemove[i].playChosedAnim();
+		}
+
+//		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item)
+//		{
+//			bubbles[posX-1,posY].SetNotChosed();
+//			bubbles[posX-1,posY].playChosedAnim();
+//			nearMatchItems.Remove(bubbles[posX-1,posY]);
+//		}
+//		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item)
+//		{
+//			bubbles[posX+1,posY].SetNotChosed();
+//			bubbles[posX+1,posY].playChosedAnim();
+//			nearMatchItems.Remove(bubbles[posX+1,posY]);
+//		}
+//		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item)
+//		{
+//			bubbles[posX,posY - 1].SetNotChosed();
+//			bubbles[posX,posY - 1].playChosedAnim();
+//			nearMatchItems.Remove(bubbles[posX,posY - 1]);
+//		}
+//		if(posY + 1 >= 0 && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item)
+//		{
+//			bubbles[posX,posY + 1].SetNotChosed();
+//			bubbles[posX,posY + 1].playChosedAnim();
+//			nearMatchItems.Remove(bubbles[posX,posY + 1]);
+//		}
 	}
 
 	void showBoosteEffect (Bubble.BoosterType bType)
@@ -468,6 +547,10 @@ public class Game : MonoBehaviour {
 					}
 				}
 			}
+			for(int i = 0; i < nearMatchItems.Count; i++)
+			{
+				matchBubbles.Add(nearMatchItems[i]);
+			}
 			destroyFoundBubbles (matchBubbles);
 			moves--;
 		} else if(gameState == GameState.bubblePressed)
@@ -476,6 +559,9 @@ public class Game : MonoBehaviour {
 			for(int i = 0; i < matchBubbles.Count; i++)
 				matchBubbles[i].playChosedAnim();
 			matchBubbles.RemoveRange(0, matchBubbles.Count);
+			for(int i =0; i < nearMatchItems.Count; i++)
+				nearMatchItems[i].SetNotChosed();
+			nearMatchItems.RemoveRange(0,nearMatchItems.Count);
 			DragonManager.instance.HideShowedBoosters();
 		}
 		showBoosteEffect(Bubble.BoosterType.none);
@@ -615,6 +701,7 @@ public class Game : MonoBehaviour {
 	
 	public void ContinueGame()
 	{
+		nearMatchItems.RemoveRange(0,nearMatchItems.Count);
 		matchBubbles.RemoveRange(0, matchBubbles.Count);
 		tableAnimator.Play ("LightenTheScreen",0,0f);
 		dropBalls ();

@@ -16,6 +16,7 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		diagonals,
 		horizontal,
 		vertical,
+		//bomb,
 		rnd
 	}
 	public override void SetBubbleScript()
