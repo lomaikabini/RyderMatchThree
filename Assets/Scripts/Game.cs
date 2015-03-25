@@ -162,12 +162,14 @@ public class Game : MonoBehaviour {
 
 		dropNewBalls ();
 
-		goals = new Dictionary<string, int> (config.goals);
+		goals = new Dictionary<string, int> ();
 		Bubble bubbleScript = BubblePool.Get().ItemPrefab.GetComponent<Bubble>();
 		Item itemScript = BubblePool.Get().ItemPrefab.GetComponent<Item>();
 		Cell cellScript = cells [0, 0];
-		foreach(KeyValuePair<string,int> k in goals)
+		foreach(KeyValuePair<string,int> k in config.goals)
 		{
+			if(k.Value <= 0) continue;
+			goals.Add(k.Key, k.Value);
 			Sprite sp = null;
 			try
 			{
@@ -356,22 +358,22 @@ public class Game : MonoBehaviour {
 
 	void checkNearItem(int posX,int posY)
 	{
-		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item)
+		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item && separatorsVertical[posX-1,posY] == null)
 		{
 			bubbles[posX-1,posY].SetChosed();
 			nearMatchItems.Add(bubbles[posX-1,posY]);
 		}
-		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item)
+		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item && separatorsVertical[posX,posY] == null)
 		{
 			bubbles[posX+1,posY].SetChosed();
 			nearMatchItems.Add(bubbles[posX+1,posY]);
 		}
-		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item)
+		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item && separatorsHorizontal[posX,posY] == null)
 		{
 			bubbles[posX,posY - 1].SetChosed();
 			nearMatchItems.Add(bubbles[posX,posY - 1]);
 		}
-		if(posY + 1 < TableSize && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item)
+		if(posY + 1 < TableSize && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item && separatorsHorizontal[posX,posY+1] == null)
 		{
 			bubbles[posX,posY + 1].SetChosed();
 			nearMatchItems.Add(bubbles[posX,posY + 1]);
