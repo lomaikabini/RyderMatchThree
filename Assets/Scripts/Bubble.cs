@@ -39,6 +39,7 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 
 	public override void SetType(Type tp,float size,BoosterType bT)
 	{
+		//SetBubbleScript ();
 		this.enabled = true;
 		this.GetComponent<Item> ().enabled = false;
 		type = tp;

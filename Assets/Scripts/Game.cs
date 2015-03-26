@@ -60,6 +60,8 @@ public class Game : MonoBehaviour {
 	private List<Vector2> boosterEffectPos = new List<Vector2> ();
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 	private Dictionary<string,int> goals;
+	private Dictionary<FieldItem.Type,int> bubbleDamages = new Dictionary<FieldItem.Type, int> ();
+	private Dictionary<Bubble.BoosterType, int> boosterDamages = new Dictionary<Bubble.BoosterType, int> ();
 	private GameData data;
 
 	public static Game instance;
@@ -203,14 +205,22 @@ public class Game : MonoBehaviour {
 			
 		}
 
-
-		for(int i =0; i < moveBubbles.Count;i++)
+		foreach(BubbleDamageEssence d in config.bubblesDamages)
+		{
+			bubbleDamages.Add(d.type,d.damage);
+		}
+		foreach(BubbleDamageEssence b in config.boostersDamages)
+		{
+			boosterDamages.Add(b.boosterType,b.damage);
+		}
+		for(int i = 0; i < moveBubbles.Count;i++)
 		{
 			insertItemInTable(moveBubbles[i],bubbleSize);
 			moveBubbles[i].whereMove.RemoveRange(0,moveBubbles[i].whereMove.Count);
 			moveBubbles[i].whereMove.Add(new KeyValuePair<float, Vector2>(1f,new Vector2((float)moveBubbles[i].posX,(float)moveBubbles[i].posY)));
 		}
 		StartCoroutine (throwStartBubbles ());
+		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 	public T ParseEnum<T>( string value )
 	{
@@ -360,22 +370,22 @@ public class Game : MonoBehaviour {
 
 	void checkNearItem(int posX,int posY)
 	{
-		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item && separatorsVertical[posX-1,posY] == null)
+		if(posX - 1 >= 0 && bubbles[posX-1,posY] != null && bubbles[posX-1,posY].type == FieldItem.Type.item && bubbles[posX-1,posY].itemScript.itemType != Item.ItemType.bomb && separatorsVertical[posX-1,posY] == null)
 		{
 			bubbles[posX-1,posY].SetChosed();
 			nearMatchItems.Add(bubbles[posX-1,posY]);
 		}
-		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item && separatorsVertical[posX,posY] == null)
+		if(posX + 1 < TableSize && bubbles[posX+1,posY] != null && bubbles[posX+1,posY].type == FieldItem.Type.item && bubbles[posX+1,posY].itemScript.itemType != Item.ItemType.bomb && separatorsVertical[posX,posY] == null)
 		{
 			bubbles[posX+1,posY].SetChosed();
 			nearMatchItems.Add(bubbles[posX+1,posY]);
 		}
-		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item && separatorsHorizontal[posX,posY] == null)
+		if(posY - 1 >= 0 && bubbles[posX,posY-1] != null && bubbles[posX,posY-1].type == FieldItem.Type.item  && bubbles[posX,posY - 1].itemScript.itemType != Item.ItemType.bomb&& separatorsHorizontal[posX,posY] == null)
 		{
 			bubbles[posX,posY - 1].SetChosed();
 			nearMatchItems.Add(bubbles[posX,posY - 1]);
 		}
-		if(posY + 1 < TableSize && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item && separatorsHorizontal[posX,posY+1] == null)
+		if(posY + 1 < TableSize && bubbles[posX,posY + 1] != null && bubbles[posX,posY + 1].type == FieldItem.Type.item && bubbles[posX,posY+1].itemScript.itemType != Item.ItemType.bomb && separatorsHorizontal[posX,posY+1] == null)
 		{
 			bubbles[posX,posY + 1].SetChosed();
 			nearMatchItems.Add(bubbles[posX,posY + 1]);
@@ -617,14 +627,14 @@ public class Game : MonoBehaviour {
 				if(separatorsVertical[i,j]!= null)
 					Destroy(separatorsVertical[i,j].gameObject);
 		}
-		
+		goals.Clear ();
+		bubbleDamages.Clear ();
 		cells = new Cell[TableSize, TableSize];
-		bubbles = new Bubble[TableSize,TableSize];
+		bubbles = new FieldItem[TableSize,TableSize];
 		separatorsHorizontal = new Separator[TableSize, TableSize];
 		separatorsVertical = new Separator[TableSize, TableSize];
 		gameState = GameState.InAction;
 		StartCoroutine(buildLevelFromFile ());
-		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 	public FieldItem CreateBooster(Dragon Dragon)
 	{

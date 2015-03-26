@@ -29,6 +29,7 @@ public class Item : FieldItem {
 			Debug.LogError("WTF! Not properly type for item!");
 			return;
 		}
+		//SetItemScript ();
 		this.enabled = true;
 		this.GetComponent<Bubble> ().enabled = false;
 		type = tp;

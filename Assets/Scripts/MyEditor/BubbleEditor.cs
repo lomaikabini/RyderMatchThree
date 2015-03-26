@@ -9,6 +9,7 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	public Image img;
 	public Text tx;
 	public static List<Sprite> bubbleImages;
+	public static List<Sprite> boosterImages;
 	[HideInInspector]
 	public RectTransform rectTransform;
 	public BubbleEssence bubbleConfig = new BubbleEssence ();

@@ -15,6 +15,7 @@ public class LevelEditor
 	public SeparatorEditor[,] separatorsHorizontal;
 	public SeparatorEditor[,] separatorsVertical;
 	public Dictionary<FieldItem.Type,int> bubblesDamages =  new Dictionary<FieldItem.Type, int>();
+	public Dictionary<Bubble.BoosterType,int> boostersDamages =  new Dictionary<Bubble.BoosterType, int>();
 	public Dictionary<string,int> goals = new Dictionary<string, int>();
 	public List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
 	public List<WizardEditor> wizards = new List<WizardEditor> ();
@@ -39,6 +40,7 @@ public class LevelEditor
 		public List<BubbleEssence> bubbles = new List<BubbleEssence> ();
 		public List<ItemEssence> items = new List<ItemEssence> ();
 		public List<BubbleDamageEssence> bubblesDamages = new List<BubbleDamageEssence>();
+		public List<BubbleDamageEssence> boostersDamages = new List<BubbleDamageEssence>();
 		public Dictionary<string,int> goals = new Dictionary<string, int>();
 		public List<Bubble.Type> availableTypes =  new List<Bubble.Type>();
 		public List<WizardEssence> wizards = new List<WizardEssence> ();
@@ -75,6 +77,10 @@ public class LevelEditor
 			foreach(KeyValuePair<FieldItem.Type,int> obj in conf.bubblesDamages)
 			{
 				bubblesDamages.Add(new BubbleDamageEssence(obj.Key,obj.Value));
+			}
+			foreach(KeyValuePair<Bubble.BoosterType,int> ob in conf.boostersDamages)
+			{
+				boostersDamages.Add(new BubbleDamageEssence(ob.Key,ob.Value));
 			}
 		}
 		public IEnumerator loadDataLvl(int id)

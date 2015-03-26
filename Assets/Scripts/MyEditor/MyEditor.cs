@@ -80,6 +80,7 @@ public class MyEditor : MonoBehaviour {
 		instantiateEditorBubbles ();
 		instantiateEditorBubblesInGame ();
 		instantiateEditorBubblesDamage ();
+		instantiateEditorBoostersDamage ();
 		instantiateEditorGoals ();
 		instantiateEditorWizards ();
 		calculateBubblesValues ();
@@ -209,7 +210,10 @@ public class MyEditor : MonoBehaviour {
 	{
 		levelEditor.bubblesDamages [b.type] = damage;
 	}
-
+	public void OnDamageChangedBooster(BubbleEditorDamage b, int damage)
+	{
+		levelEditor.boostersDamages [b.boosterType] = damage;
+	}
 	public void OnPlayClick()
 	{
 		GameData.Get ().currentLvl = levelEditor.curentLvl;
@@ -519,7 +523,24 @@ public class MyEditor : MonoBehaviour {
 			levelEditor.bubblesDamages.Add(type,0);
 		}
 	}
-
+	void instantiateEditorBoostersDamage ()
+	{
+		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
+		for(int i = 0;i < Enum.GetNames(typeof(Bubble.BoosterType)).Length;i++)
+		{
+			Bubble.BoosterType type = (Bubble.BoosterType)i;
+			if(type == Bubble.BoosterType.none) continue;
+			GameObject obj = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+			BubbleEditorDamage bubEditor = obj.GetComponent<BubbleEditorDamage>();
+			BubbleEditor.boosterImages = bubble.boosterImages;
+			obj.transform.SetParent(bubbleDamageContainer);
+			obj.transform.localScale = new Vector3(1f,1f,1f);
+			bubEditor.boosterType = type;
+			bubEditor.isBooster = true;
+			bubEditor.img.sprite = bubble.boosterImages.Find(a => {return a.name.Contains(type.ToString())? a : null;});
+			levelEditor.boostersDamages.Add(type,0);
+		}
+	}
 	void instantiateEditorSeparators ()
 	{
 		Separator sep = separatorPrefab.GetComponent<Separator> ();

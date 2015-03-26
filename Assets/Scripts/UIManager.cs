@@ -10,6 +10,7 @@ public class UIManager : MonoBehaviour {
 	public GameObject goalPrefab;
 	public static UIManager instance;
 	private Dictionary<string,Text> goals = new Dictionary<string, Text>();
+
 	void Awake()
 	{
 		instance = this;
@@ -24,6 +25,11 @@ public class UIManager : MonoBehaviour {
 	{
 		if (!goalsContainer.gameObject.activeSelf)
 			goalsContainer.gameObject.SetActive (true);
+		if (goals.ContainsKey (type))
+		{
+			SetGoalView(type,count);
+			return;
+		}
 		GameObject obj = Instantiate (goalPrefab, Vector3.zero, Quaternion.identity) as GameObject;
 		obj.transform.SetParent (goalsContainer);
 		obj.transform.localScale = new Vector3 (1f, 1f, 1f);
