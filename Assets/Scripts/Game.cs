@@ -45,6 +45,8 @@ public class Game : MonoBehaviour {
 	private int lastBubblePosY;
 	private int moves;
 
+	private Vector2 boosterPos = Vector2.zero;
+
 	private Cell[,] cells;
 	private FieldItem[,] bubbles;
 	private Separator[,] separatorsHorizontal;
@@ -55,7 +57,7 @@ public class Game : MonoBehaviour {
 	private List<FieldItem> moveBubbles = new List<FieldItem> ();
 	private List<FieldItem> nearMatchItems = new List<FieldItem>();
 	private List<FieldItem.Type> availableTypes = new List<FieldItem.Type> ();
-	private List<Vector2> boosterEffectPos;
+	private List<Vector2> boosterEffectPos = new List<Vector2> ();
 	private List<ParallaxJoint> joints = new List<ParallaxJoint>();
 	private Dictionary<string,int> goals;
 	private GameData data;
@@ -440,6 +442,7 @@ public class Game : MonoBehaviour {
 		}
 		if(bType == Bubble.BoosterType.none) return;
 		boosterEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
+		boosterPos = new Vector2 ((float)matchBubbles [matchBubbles.Count - 1].posX, (float)matchBubbles [matchBubbles.Count - 1].posX);
 		int val;
 		List<Vector2> usedBoosters = new List<Vector2> ();
 		do {
@@ -457,9 +460,9 @@ public class Game : MonoBehaviour {
 						for(int k = 0; k < TableSize; k++)
 							for(int j = 0; j < TableSize; j++)
 						{
-							//if(k==TableSize-1 && j == TableSize-1) goto end;
 								boosterEffectPos.Add(new Vector2((float)k,(float)j));
 						}
+						boosterPos = new Vector2(boosterEffectPos[i].x,boosterEffectPos[i].y);
 						goto end;
 					}
 					else 
@@ -478,7 +481,6 @@ public class Game : MonoBehaviour {
 		} while(val != boosterEffectPos.Count);
 
 		end:
-			Debug.Log ("boosteeffectcount = " + boosterEffectPos.Count);
 		for(int i = 0 ; i < boosterEffectPos.Count; i++)
 		{
 			cells[(int)boosterEffectPos[i].x,(int)boosterEffectPos[i].y].SetBoosterEffect(true);
@@ -550,19 +552,17 @@ public class Game : MonoBehaviour {
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
-			if(boosterEffectPos != null)
-			{
-				for(int i = 0; i < boosterEffectPos.Count;i++)
-				{
-					int x =(int) boosterEffectPos[i].x;
-					int y =(int) boosterEffectPos[i].y;
-					if(bubbles[x,y] != null)
-					{
-						matchBubbles.Add(bubbles[x,y]);
-						bubbles[x,y].RealeaseItem();
-					}
-				}
-			}
+//			for(int i = 0; i < boosterEffectPos.Count;i++)
+//			{
+//				int x =(int) boosterEffectPos[i].x;
+//				int y =(int) boosterEffectPos[i].y;
+//				if(bubbles[x,y] != null)
+//				{
+//					matchBubbles.Add(bubbles[x,y]);
+//					bubbles[x,y].RealeaseItem();
+//				}
+//			}
+
 			for(int i = 0; i < nearMatchItems.Count; i++)
 			{
 				matchBubbles.Add(nearMatchItems[i]);
@@ -711,7 +711,18 @@ public class Game : MonoBehaviour {
 				}
 			}
 		}
-		DragonManager.instance.GetDragonItems (list);
+		List<FieldItem> boosterBubbles = new List<FieldItem> ();
+		for(int i =0; i < boosterEffectPos.Count; i++)
+		{
+			int x = (int) boosterEffectPos[i].x;
+			int y = (int) boosterEffectPos[i].y;
+			if(bubbles[x,y] != null)
+			{
+				boosterBubbles.Add(bubbles[x,y]);
+				bubbles[x,y] = null;
+			}
+		}
+		DragonManager.instance.GetDragonItems (list,boosterBubbles,boosterPos);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
 	}
 	
@@ -1286,6 +1297,7 @@ public class Game : MonoBehaviour {
 		return true;
 	}
 
+	//TODO: perepisat' metodi dlya ly4wei proizvoditelnosti
 	void removeDublicate (ref List<FieldItem> list)
 	{
 		for(int i = 0; i < list.Count; i++)
@@ -1295,6 +1307,19 @@ public class Game : MonoBehaviour {
 			{
 				list.RemoveAt(j);
 				removeDublicate(ref list);
+			}
+		}
+	}
+
+	void removeDublicateVector (ref List<Vector2> list)
+	{
+		for(int i = 0; i < list.Count; i++)
+			for(int j = 0; j < list.Count; j++)
+		{
+			if(i != j && list[i].x == list[j].x && list[i].y == list[j].y)
+			{
+				list.RemoveAt(j);
+				removeDublicateVector(ref list);
 			}
 		}
 	}

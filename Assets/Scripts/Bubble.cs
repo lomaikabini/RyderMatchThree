@@ -43,7 +43,7 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		this.GetComponent<Item> ().enabled = false;
 		type = tp;
 		boosterType = bT;
-		rectTransform.sizeDelta = new Vector2 (size, size);
+		rectTransform.sizeDelta = new Vector2 (size*0.9f, size*0.9f);
 		RealeaseItem ();
 		SetNotChosed ();
 

@@ -12,6 +12,8 @@ public class DragonManager : MonoBehaviour {
 	private int movingCount = 0;
 	private int movingBoosters = 0;
 	private List<FieldItem.Type> matchBubbles;
+	List<FieldItem> boosterList;
+	Vector2 boosterPos;
 	public List<KeyValuePair<Dragon,FieldItem>> dropBoosters = new List<KeyValuePair<Dragon,FieldItem>>();
 
 	void Awake()
@@ -37,21 +39,59 @@ public class DragonManager : MonoBehaviour {
 		FieldItem itm = Game.instance.CreateBooster (dragon);
 		dropBoosters.Add (new KeyValuePair<Dragon, FieldItem> (dragon, itm));
 	}
-	public void GetDragonItems(List<FieldItem> list)
+	public void GetDragonItems(List<FieldItem> list,List<FieldItem> boosterList,Vector2 boosterPos)
 	{
-		matchBubbles =new List<FieldItem.Type>();
+		//TODO: vozmojno tyt naod bydet ydalyat' dyblikati s boosterlist
+		matchBubbles = new List<FieldItem.Type>();
 		for (int i=0; i < list.Count; i++)
 			matchBubbles.Add (list [i].type);
+
+		movingCount = list.Count;
+		this.boosterList = boosterList;
+		this.boosterPos = boosterPos;
 		StartCoroutine (moveObjectsToDragons (list));
 	}
+	IEnumerator moveBubblesBooster()
+	{
+		movingCount = boosterList.Count;
+		int startX =(int) boosterPos.x;
+		int startY =(int) boosterPos.y;
+		int size = Game.instance.TableSize;
+		for(int i = 0; i < size; i++)
+		{
+			int count = i;//(i*2)-1;
+			int m = 0;
+			for(int q = startX-count; q <= startX+count; q++)
+			{
+				for(int w = startY-count; w <= startY+count; w++)
+				{
+					if( (q == startX-count || q == startX+count || w == startY-count || w == startY+count) /*&& boosterList.Exists(o=> o.posX == startX+q && o.posY == startY+w)*/)
+					{
+						FieldItem itm = boosterList.Find(o=> o.posX == q && o.posY == w);
+						if(itm != null)
+						{
+							StartCoroutine(ScaleUpObj(itm));
+							boosterList.Remove(itm);
+							m++;
+						}
+					}
+				}
+			}
+			if(m!=0)
+				yield return new WaitForSeconds(0.2f);
+			else
+				yield return null;
+		}
+		yield return null;
+	}
+
 	IEnumerator moveObjectsToDragons(List<FieldItem> list)
 	{
 		yield return new WaitForEndOfFrame ();
-		movingCount = list.Count;
 		for(int i =0;i < list.Count;i++)
 		{
 			StartCoroutine(ScaleUpObj(list[i]));
-			yield return new WaitForSeconds(0.2f);
+			yield return new WaitForSeconds(0.12f);
 		}
 		yield return null;
 	}
@@ -78,7 +118,10 @@ public class DragonManager : MonoBehaviour {
 			movingCount--;
 			if(movingCount == 0)
 			{
-				StartCoroutine(attackWizard());
+				if(boosterList.Count == 0 )
+					StartCoroutine(attackWizard());
+				else
+					StartCoroutine(moveBubblesBooster());
 			}
 			BubblePool.Get ().Push (t.gameObject);
 		}
@@ -107,7 +150,10 @@ public class DragonManager : MonoBehaviour {
 		BubblePool.Get ().Push (t.gameObject);
 		if(movingCount == 0)
 		{
-			StartCoroutine(attackWizard());
+			if(boosterList.Count == 0 )
+				StartCoroutine(attackWizard());
+			else
+				StartCoroutine(moveBubblesBooster());
 		}
 		yield return null;
 	}

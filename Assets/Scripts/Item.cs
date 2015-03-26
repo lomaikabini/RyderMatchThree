@@ -36,7 +36,7 @@ public class Item : FieldItem {
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
-		rectTransform.sizeDelta = new Vector2 (size, size);
+		rectTransform.sizeDelta = new Vector2 (size*0.9f, size*0.9f);
 		RealeaseItem ();
 		SetNotChosed ();
 	}
