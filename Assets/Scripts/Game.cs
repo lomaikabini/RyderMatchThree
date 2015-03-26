@@ -687,7 +687,8 @@ public class Game : MonoBehaviour {
 
 	void destroyFoundBubbles (List<FieldItem> list)
 	{
-		removeDublicate (ref list);
+		//TODO: ydalit' koment elsi poyavyatsya eksepweni
+		//removeDublicate (ref list);
 		if(boosterEffectPos != null)
 			explositionFromBooster (boosterEffectPos);
 		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
