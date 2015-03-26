@@ -41,6 +41,7 @@ public class DragonManager : MonoBehaviour {
 	}
 	public void GetDragonItems(List<FieldItem> list,List<FieldItem> boosterList,Vector2 boosterPos)
 	{
+		Debug.Log (boosterPos);
 		//TODO: vozmojno tyt naod bydet ydalyat' dyblikati s boosterlist
 		matchBubbles = new List<FieldItem.Type>();
 		for (int i=0; i < list.Count; i++)

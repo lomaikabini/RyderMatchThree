@@ -220,7 +220,6 @@ public class Game : MonoBehaviour {
 			moveBubbles[i].whereMove.Add(new KeyValuePair<float, Vector2>(1f,new Vector2((float)moveBubbles[i].posX,(float)moveBubbles[i].posY)));
 		}
 		StartCoroutine (throwStartBubbles ());
-		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 	public T ParseEnum<T>( string value )
 	{
@@ -452,7 +451,7 @@ public class Game : MonoBehaviour {
 		}
 		if(bType == Bubble.BoosterType.none) return;
 		boosterEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
-		boosterPos = new Vector2 ((float)matchBubbles [matchBubbles.Count - 1].posX, (float)matchBubbles [matchBubbles.Count - 1].posX);
+		boosterPos = new Vector2 ((float)matchBubbles [matchBubbles.Count - 1].posX, (float)matchBubbles [matchBubbles.Count - 1].posY);
 		int val;
 		List<Vector2> usedBoosters = new List<Vector2> ();
 		do {
@@ -629,12 +628,14 @@ public class Game : MonoBehaviour {
 		}
 		goals.Clear ();
 		bubbleDamages.Clear ();
+		boosterDamages.Clear ();
 		cells = new Cell[TableSize, TableSize];
 		bubbles = new FieldItem[TableSize,TableSize];
 		separatorsHorizontal = new Separator[TableSize, TableSize];
 		separatorsVertical = new Separator[TableSize, TableSize];
 		gameState = GameState.InAction;
 		StartCoroutine(buildLevelFromFile ());
+		curtainAnimator.Play ("curtain_open", 0, 0f);
 	}
 	public FieldItem CreateBooster(Dragon Dragon)
 	{
