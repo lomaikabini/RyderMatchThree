@@ -11,7 +11,7 @@ public class DragonManager : MonoBehaviour {
 	public static DragonManager instance;
 	private int movingCount = 0;
 	private int movingBoosters = 0;
-	private List<FieldItem> matchBubbles;
+	private List<FieldItem.Type> matchBubbles;
 	public List<KeyValuePair<Dragon,FieldItem>> dropBoosters = new List<KeyValuePair<Dragon,FieldItem>>();
 
 	void Awake()
@@ -39,7 +39,9 @@ public class DragonManager : MonoBehaviour {
 	}
 	public void GetDragonItems(List<FieldItem> list)
 	{
-		matchBubbles =new List<FieldItem>(list);
+		matchBubbles =new List<FieldItem.Type>();
+		for (int i=0; i < list.Count; i++)
+			matchBubbles.Add (list [i].type);
 		StartCoroutine (moveObjectsToDragons (list));
 	}
 	IEnumerator moveObjectsToDragons(List<FieldItem> list)
@@ -76,9 +78,9 @@ public class DragonManager : MonoBehaviour {
 			movingCount--;
 			if(movingCount == 0)
 			{
-				BubblePool.Get ().Push (t.gameObject);
 				StartCoroutine(attackWizard());
 			}
+			BubblePool.Get ().Push (t.gameObject);
 		}
 		yield return null;
 	}
