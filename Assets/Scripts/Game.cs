@@ -253,9 +253,38 @@ public class Game : MonoBehaviour {
 		showBoosteEffect(bubble.bubbleScript.boosterType);
 		gameState = GameState.bubblePressed;
 		DragonManager.instance.ShowBooster (bubble.type);
+		showBoosterCurrentValue ();
 		hideDifferentBubbles (bubble);
 	}
-
+	void showBoosterCurrentValue()
+	{
+		Dictionary<FieldItem.Type,int> allCount = new Dictionary<FieldItem.Type, int> ();
+		for(int i = 0; i < Enum.GetNames(typeof(Bubble.BoosterType)).Length; i++)
+		{
+			allCount.Add((FieldItem.Type)i,0);
+		}
+		for(int i = 0;i < boosterEffectPos.Count; i++)
+		{
+			int x = (int) boosterEffectPos[i].x;
+			int y = (int) boosterEffectPos[i].y;
+			if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item)
+				allCount[bubbles[x,y].type] ++;
+		}
+		allCount[matchBubbles[0].type] += matchBubbles.Count;
+		foreach(KeyValuePair<FieldItem.Type,int> k in allCount)
+		{
+			if(k.Key == FieldItem.Type.item) continue;
+			if(k.Value == 0) 
+			{
+				DragonManager.instance.HideBooster(k.Key);
+			}
+			else
+			{
+				DragonManager.instance.ShowBooster (k.Key);
+				DragonManager.instance.SetIndicatorCount(k.Key,k.Value);
+			}
+		}
+	}
 	public void BubblePointerEnter(Bubble bubble)
 	{
 		if (gameState != GameState.bubblePressed)
@@ -305,7 +334,7 @@ public class Game : MonoBehaviour {
 			int id = matchBubbles.Count-1;
 			matchBubbles[id].SetNotChosed();
 			matchBubbles[id].playChosedAnim();
-			DragonManager.instance.DecreaseIndicatorCurrent(matchBubbles[id].type);
+			//DragonManager.instance.SetIndicatorCount(matchBubbles[id].type,matchBubbles.Count-1);
 			matchBubbles.Remove(matchBubbles[id]);
 			removeNearItem();
 			Bubble.BoosterType bType = Bubble.BoosterType.none;
@@ -318,6 +347,7 @@ public class Game : MonoBehaviour {
 				}
 			}
 			showBoosteEffect(bType);
+			showBoosterCurrentValue();
 			if(joints.Count > 0)
 			{
 				JointsPool.Get().Push(joints[joints.Count - 1]);
@@ -335,7 +365,6 @@ public class Game : MonoBehaviour {
 		if (!exist && Mathf.Abs (matchBubbles[indx].posX - bubble.posX) <= 1 && Mathf.Abs (matchBubbles[indx].posY - bubble.posY) <= 1)
 			{
 
-				DragonManager.instance.IncreaseIndicatorCurrent(bubble.type);
 				bubble.playChosedAnim ();
 				matchBubbles.Add(bubble);
 				bubble.SetChosed();
@@ -349,6 +378,8 @@ public class Game : MonoBehaviour {
 					}
 				}
 				showBoosteEffect(bType);
+				showBoosterCurrentValue();
+				//DragonManager.instance.SetIndicatorCount(bubble.type,matchBubbles.Count);
 				if(matchBubbles.Count == 3)
 				{
 					for(int i =0; i < 2; i++)
@@ -456,7 +487,11 @@ public class Game : MonoBehaviour {
 		{
 			cells[i,j].SetBoosterEffect(false);
 		}
-		if(bType == Bubble.BoosterType.none) return;
+		if(bType == Bubble.BoosterType.none)
+		{
+			boosterEffectPos.RemoveRange(0,boosterEffectPos.Count);
+			return;
+		}
 		boosterEffectPos = getPositionForBoosetrEffect (bType, matchBubbles [matchBubbles.Count - 1].posX, matchBubbles [matchBubbles.Count - 1].posY);
 		boosterPos = new Vector2 ((float)matchBubbles [matchBubbles.Count - 1].posX, (float)matchBubbles [matchBubbles.Count - 1].posY);
 		int val;
@@ -469,7 +504,7 @@ public class Game : MonoBehaviour {
 				int x  =(int) boosterEffectPos[i].x;
 				int y = (int) boosterEffectPos[i].y;
 		
-				if(bubbles[x,y] != null && (((bubbles[x,y].type != FieldItem.Type.item) && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)||(bubbles[x,y].type == FieldItem.Type.item && bubbles[x,y].itemScript.itemType == Item.ItemType.bomb)))
+				if(bubbles[x,y] != null && cells[x,y].cellType == Cell.Type.empty && (((bubbles[x,y].type != FieldItem.Type.item) && !usedBoosters.Exists(o=>o==boosterEffectPos[i]) && !matchBubbles.Exists(o=> o==bubbles[x,y]) && bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)||(bubbles[x,y].type == FieldItem.Type.item && bubbles[x,y].itemScript.itemType == Item.ItemType.bomb)))
 				{
 					if(bubbles[x,y].type == FieldItem.Type.item && bubbles[x,y].itemScript.itemType == Item.ItemType.bomb)
 					{
@@ -647,7 +682,7 @@ public class Game : MonoBehaviour {
 	public FieldItem CreateBooster(Dragon Dragon)
 	{
 		int x = UnityEngine.Random.Range (0, TableSize);
-		int y = UnityEngine.Random.Range (0, TableSize);
+		int y = UnityEngine.Random.Range (TableSize - 2, TableSize);
 		FieldItem target = bubbles [x,y];
 		while(target == null || target.type == FieldItem.Type.item || target.bubbleScript.boosterType != Bubble.BoosterType.none)
 		{
@@ -657,13 +692,13 @@ public class Game : MonoBehaviour {
 			}
 			else
 			{
-				if(y+1 < TableSize)
+				if(y-1 >= 0)
 				{
-					y++;
+					y--;
 				}
 				else
 				{
-					y = 0;
+					y = TableSize-1;
 				}
 				x = 0;
 			}
@@ -696,24 +731,49 @@ public class Game : MonoBehaviour {
 	{
 		//TODO: ydalit' koment elsi poyavyatsya eksepweni
 		//removeDublicate (ref list);
-		if(boosterEffectPos != null)
-			explositionFromBooster (boosterEffectPos);
+		bool isBomb = bubbles [(int)boosterPos.x, (int)boosterPos.y]!= null && bubbles [(int)boosterPos.x, (int)boosterPos.y].type == FieldItem.Type.item;
+
+		List<Vector2> removedBlockers = new List<Vector2> ();
+		if (!isBomb) {
+			for (int i =0; i < boosterEffectPos.Count; i++) {
+				int x = (int)boosterEffectPos [i].x;
+				int y = (int)boosterEffectPos [i].y;
+				if (cells [x, y].cellType != Cell.Type.empty)
+					removedBlockers.Add (boosterEffectPos [i]);
+			}
+		}
+
+		explositionFromBooster (boosterEffectPos);
 		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
 		explositionNearBlocks (list,blockedCells);
 		for(int i = 0;i < list.Count; i++)
 		{
 			bubbles[list[i].posX,list[i].posY] = null;
 		}
+
+		List<FieldItem> boosterBubbles = new List<FieldItem> ();
+		for(int i =0; i < boosterEffectPos.Count; i++)
+		{
+			int x = (int) boosterEffectPos[i].x;
+			int y = (int) boosterEffectPos[i].y;
+			if(bubbles[x,y] != null && !removedBlockers.Exists(o=>o==boosterEffectPos[i]))
+			{
+				boosterBubbles.Add(bubbles[x,y]);
+				bubbles[x,y] = null;
+			}
+		}
+
 		for(int i = 0;i <  Enum.GetNames(typeof(FieldItem.Type)).Length; i++)
 		{
 			FieldItem.Type t = (FieldItem.Type) i;
 			List<FieldItem> l = list.FindAll(o=>o.type==t);
+			List<FieldItem> l2 = boosterBubbles.FindAll(o=>o.type==t);
 			if(t != FieldItem.Type.item)
 			{
 				String sType = t.ToString();
 				if(goals.ContainsKey(sType))
 				{
-					goals[sType] -= l.Count;
+					goals[sType] -= l.Count+l2.Count;
 					UIManager.instance.SetGoalView(sType,goals[sType]);
 				}
 			}
@@ -724,23 +784,13 @@ public class Game : MonoBehaviour {
 					String sType = ((Item.ItemType)j).ToString();
 					if(goals.ContainsKey(sType))
 					{
-						goals[sType] -= l.Count;
+						goals[sType] -= l.Count+l2.Count;
 						UIManager.instance.SetGoalView(sType,goals[sType]);
 					}
 				}
 			}
 		}
-		List<FieldItem> boosterBubbles = new List<FieldItem> ();
-		for(int i =0; i < boosterEffectPos.Count; i++)
-		{
-			int x = (int) boosterEffectPos[i].x;
-			int y = (int) boosterEffectPos[i].y;
-			if(bubbles[x,y] != null)
-			{
-				boosterBubbles.Add(bubbles[x,y]);
-				bubbles[x,y] = null;
-			}
-		}
+		
 		DragonManager.instance.GetDragonItems (list,boosterBubbles,boosterPos);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
 	}

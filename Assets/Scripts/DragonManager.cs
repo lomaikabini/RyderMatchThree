@@ -72,6 +72,7 @@ public class DragonManager : MonoBehaviour {
 						{
 							StartCoroutine(ScaleUpObj(itm));
 							boosterList.Remove(itm);
+							matchBubbles.Add(itm.type);
 							m++;
 						}
 					}
@@ -230,25 +231,40 @@ public class DragonManager : MonoBehaviour {
 		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
 		Dragon dragon = dragons.Find(o => o.type == t);
 		dragon.overlayCurrent.fillAmount = dragon.overlayFact.fillAmount;
-		IncreaseIndicatorCurrent (t);
+		SetIndicatorCount (t, 1);
+		//IncreaseIndicatorCurrent (t);
 		dragon.boosterView.SetActive(true);
 	}
-	public void IncreaseIndicatorCurrent(FieldItem.Type t)
+	public void HideBooster(FieldItem.Type t)
+	{
+		Dragon dragon = dragons.Find(o => o.type == t);
+		if(dragon.boosterView.activeSelf)
+			dragon .boosterView.SetActive(false);
+	}
+	public void SetIndicatorCount(FieldItem.Type t,int count = 1)
 	{
 		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
-		float value = 1f / maxCount;
+		float value = ((float) count) / maxCount;
 		Dragon dragon = dragons.Find(o => o.type == t);
-		float newValue = Mathf.Max (0f, dragon.overlayCurrent.fillAmount - value);
+		float newValue = Mathf.Max (0f, dragon.overlayFact.fillAmount - value);
 		dragon.overlayCurrent.fillAmount = newValue; 
 	}
-	public void DecreaseIndicatorCurrent(FieldItem.Type t)
-	{
-		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
-		float value = 1f / maxCount;
-		Dragon dragon = dragons.Find(o => o.type == t);
-		float newValue = Mathf.Min (1f, dragon.overlayCurrent.fillAmount + value);
-		dragon.overlayCurrent.fillAmount = newValue; 
-	}
+//	public void IncreaseIndicatorCurrent(FieldItem.Type t,int count = 1)
+//	{
+//		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
+//		float value = ((float) count) / maxCount;
+//		Dragon dragon = dragons.Find(o => o.type == t);
+//		float newValue = Mathf.Max (0f, dragon.overlayCurrent.fillAmount - value);
+//		dragon.overlayCurrent.fillAmount = newValue; 
+//	}
+//	public void DecreaseIndicatorCurrent(FieldItem.Type t,int count = 1)
+//	{
+//		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
+//		float value = ((float) count) / maxCount;
+//		Dragon dragon = dragons.Find(o => o.type == t);
+//		float newValue = Mathf.Min (1f, dragon.overlayCurrent.fillAmount + value);
+//		dragon.overlayCurrent.fillAmount = newValue; 
+//	}
 	public void IncreaseIndicatorFact(FieldItem.Type t)
 	{
 		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
