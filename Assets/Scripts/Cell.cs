@@ -24,7 +24,8 @@ public class Cell : MonoBehaviour {
 		empty,
 		groundBlock,
 		block,
-		box
+		box,
+		spot
 	}
 
 	[Serializable]

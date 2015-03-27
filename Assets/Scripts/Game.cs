@@ -14,10 +14,12 @@ public class Game : MonoBehaviour {
 
 	public GameObject cellPrefab;
 	public GameObject separatorPrefab;
+	public GameObject substratePrefab;
 
 	public RectTransform BubbleContainer;
 	public RectTransform CellsContainer;
 	public RectTransform SeparatorContainer;
+	public Transform SubstrateContainer;
 
 	public Text scoresView;
 	public Animator curtainAnimator;
@@ -104,6 +106,7 @@ public class Game : MonoBehaviour {
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
 		fillEnvironment ();
+		fillTableSubstrates ();
 		StartCoroutine(buildLevelFromFile ());
 	}
 
@@ -241,6 +244,8 @@ public class Game : MonoBehaviour {
 	{
 		if (gameState != GameState.free)
 						return;
+		if (cells [bubble.posX, bubble.posY].cellType != Cell.Type.empty)
+			return;
 		bubble.playChosedAnim ();
 		matchBubbles.Add (bubble);
 		checkNearItem(bubble.posX,bubble.posY);
@@ -256,6 +261,8 @@ public class Game : MonoBehaviour {
 		if (gameState != GameState.bubblePressed)
 			return;
 		if (matchBubbles.Count == 0 || bubble.type != matchBubbles [0].type)
+			return;
+		if (cells [bubble.posX, bubble.posY].cellType != Cell.Type.empty)
 			return;
 		int xMin = Mathf.Min(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
 		int xMax = Mathf.Max(matchBubbles[matchBubbles.Count-1].posX, bubble.posX);
@@ -771,18 +778,18 @@ public class Game : MonoBehaviour {
 			}
 
 			giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y],999);
-			if((int)b.y + 1 < TableSize){
-				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y + 1],999);
-			}
-			if((int)b.y - 1 >= 0){
-				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y - 1],999);
-			}
-			if((int)b.x + 1 < TableSize){
-				giveDamageForCell(ref usedCells,cells[(int)b.x + 1,(int)b.y],999);
-			}
-			if((int)b.x - 1 >= 0){
-				giveDamageForCell(ref usedCells,cells[(int)b.x - 1,(int)b.y],999);
-			}
+//			if((int)b.y + 1 < TableSize){
+//				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y + 1],999);
+//			}
+//			if((int)b.y - 1 >= 0){
+//				giveDamageForCell(ref usedCells,cells[(int)b.x,(int)b.y - 1],999);
+//			}
+//			if((int)b.x + 1 < TableSize){
+//				giveDamageForCell(ref usedCells,cells[(int)b.x + 1,(int)b.y],999);
+//			}
+//			if((int)b.x - 1 >= 0){
+//				giveDamageForCell(ref usedCells,cells[(int)b.x - 1,(int)b.y],999);
+//			}
 		}
 	}
 	
@@ -898,6 +905,7 @@ public class Game : MonoBehaviour {
 		{
 			//TODO: xyi znaet mojet ewe naod bydet
 			//if(separatorsHorizontal[i,j] != null) continue;
+			if(cells[i,j].cellType != Cell.Type.empty) continue;
 			int indx = j;
 			while(indx >= 1 && bubbles[i,indx-1] == null && cells[i,indx-1].cellType == Cell.Type.empty && separatorsHorizontal[i,indx] == null)
 			{
@@ -1383,7 +1391,7 @@ public class Game : MonoBehaviour {
 
 	void fillEnvironment ()
 	{
-		for(int i = -3; i < 0; i++)
+		for(int i = -2; i < 0; i++)
 			for(int j = 0; j < TableSize;j++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -1394,7 +1402,7 @@ public class Game : MonoBehaviour {
 			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
 
-		for(int i = TableSize; i < TableSize+3; i++)
+		for(int i = TableSize; i < TableSize+2; i++)
 			for(int j = 0; j < TableSize;j++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -1404,8 +1412,8 @@ public class Game : MonoBehaviour {
 			insertCellTable(cell);
 			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
-		for(int i = -3; i < TableSize+3; i++)
-			for(int j = -2; j < 0;j++)
+		for(int i = -2; i < TableSize+2; i++)
+			for(int j = -1; j < 0;j++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			Cell cell = obj.GetComponent<Cell>(); 
@@ -1415,7 +1423,18 @@ public class Game : MonoBehaviour {
 			cell.SetType(Cell.Type.groundBlock,bubbleSize+2f);
 		}
 	}
-
+	void fillTableSubstrates ()
+	{
+		for(int i = -2; i < TableSize+2; i++)
+			for(int j = 0; j < TableSize; j++)
+		{
+			GameObject obj = Instantiate (substratePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+			obj.transform.SetParent(SubstrateContainer);
+			obj.transform.localScale = new Vector3(1f,1f,1f);
+			obj.transform.localPosition = calculatePosition(i,j);
+			obj.GetComponent<RectTransform>().sizeDelta = new Vector3(bubbleSize,bubbleSize);
+		}
+	}
 
 	void fillTableCells ()
 	{
@@ -1580,7 +1599,13 @@ public class Game : MonoBehaviour {
 		{
 			gameOver();
 		}
+		testovayaKlyaksa ();
 		gameState = GameState.free;
+	}
+
+	void testovayaKlyaksa ()
+	{
+		cells [2, 5].SetType (Cell.Type.spot);
 	}
 
 	void gameDone ()
@@ -1744,15 +1769,13 @@ public class Game : MonoBehaviour {
 	{
 		cell.transform.SetParent(CellsContainer.transform);
 		cell.rectTransform.localScale = new Vector3 (1f, 1f, 1f);
-		cell.transform.localPosition = new Vector3 ((float)cell.posX * bubbleSize + ((float)(cell.posX) * BubblePadding)-bubblesOffset, 
-		                                              (float)cell.posY * bubbleSize + ((float)(cell.posY) * BubblePadding)-bubblesOffset, 0f);
+		cell.transform.localPosition = calculatePosition (cell.posX, cell.posY);
 	}
 
 	void insertItemInTable(FieldItem bubble,float clearance = 0f)
 	{
 		bubble.transform.SetParent(BubbleContainer.transform);
-		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset+clearance, 0f);
+		bubble.transform.localPosition = calculatePosition (bubble.posX, bubble.posY, clearance);
 	}
 
 	void insertBubbleInTable (Bubble bubble,bool rndType = true,float clearance = 0f)
@@ -1760,8 +1783,13 @@ public class Game : MonoBehaviour {
 		bubble.transform.SetParent(BubbleContainer.transform);
 		if(rndType)
 			bubble.SetType (availableTypes[Mathf.RoundToInt(UnityEngine.Random.Range(0,availableTypes.Count))], bubbleSize,Bubble.BoosterType.none);
-		bubble.transform.localPosition = new Vector3 ((float)bubble.posX * bubbleSize + ((float)(bubble.posX) * BubblePadding)-bubblesOffset, 
-		                                              (float)bubble.posY * bubbleSize + ((float)(bubble.posY) * BubblePadding)-bubblesOffset+clearance, 0f);
+		bubble.transform.localPosition = calculatePosition (bubble.posX, bubble.posY, clearance);
+	}
+
+	Vector3 calculatePosition(int posX, int posY, float clearance = 0f)
+	{
+		return new Vector3 ((float)posX * bubbleSize + ((float)(posX) * BubblePadding)-bubblesOffset, 
+		                    (float)posY * bubbleSize + ((float)(posY) * BubblePadding)-bubblesOffset+clearance, 0f);
 	}
 
 	void calculateBubblesValues ()
