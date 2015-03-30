@@ -20,11 +20,11 @@ public class WizardEditor : MonoBehaviour {
 
 		InputField.SubmitEvent submitEvent2 = new InputField.SubmitEvent();
 		submitEvent2.AddListener(submitSlimePeriod);
-		slimeField.onEndEdit = submitEvent;
+		slimeField.onEndEdit = submitEvent2;
 
 		InputField.SubmitEvent submitEvent3 = new InputField.SubmitEvent();
 		submitEvent3.AddListener(submitToothPeriod);
-		toothField.onEndEdit = submitEvent;
+		toothField.onEndEdit = submitEvent3;
 	}
 
 	void submitToothPeriod (string arg)

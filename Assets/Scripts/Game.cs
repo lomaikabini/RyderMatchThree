@@ -216,6 +216,7 @@ public class Game : MonoBehaviour {
 		{
 			boosterDamages.Add(b.boosterType,b.damage);
 		}
+		WizardManager.instance.Initialize (config.wizards);
 		for(int i = 0; i < moveBubbles.Count;i++)
 		{
 			insertItemInTable(moveBubbles[i],bubbleSize);
@@ -254,23 +255,12 @@ public class Game : MonoBehaviour {
 		gameState = GameState.bubblePressed;
 		DragonManager.instance.ShowBooster (bubble.type);
 		showBoosterCurrentValue ();
+		showWizardDamage ();
 		hideDifferentBubbles (bubble);
 	}
 	void showBoosterCurrentValue()
 	{
-		Dictionary<FieldItem.Type,int> allCount = new Dictionary<FieldItem.Type, int> ();
-		for(int i = 0; i < Enum.GetNames(typeof(Bubble.BoosterType)).Length; i++)
-		{
-			allCount.Add((FieldItem.Type)i,0);
-		}
-		for(int i = 0;i < boosterEffectPos.Count; i++)
-		{
-			int x = (int) boosterEffectPos[i].x;
-			int y = (int) boosterEffectPos[i].y;
-			if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item)
-				allCount[bubbles[x,y].type] ++;
-		}
-		allCount[matchBubbles[0].type] += matchBubbles.Count;
+		Dictionary<FieldItem.Type,int> allCount = getItemsForBoosters ();
 		foreach(KeyValuePair<FieldItem.Type,int> k in allCount)
 		{
 			if(k.Key == FieldItem.Type.item) continue;
@@ -285,6 +275,60 @@ public class Game : MonoBehaviour {
 			}
 		}
 	}
+	void showWizardDamage ()
+	{
+		WizardManager.instance.ShowCurrentWizardDamage (calculateDamage());
+	}
+
+	int calculateDamage()
+	{
+		int damage = 0;
+		FieldItem.Type resistType = WizardManager.instance.GetCurrentWizardResist ();
+		for(int i = 0;i < boosterEffectPos.Count; i++)
+		{
+			int x = (int) boosterEffectPos[i].x;
+			int y = (int) boosterEffectPos[i].y;
+			if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item && bubbles[x,y].type != resistType)
+			{
+				if(bubbles[x,y].bubbleScript.boosterType != Bubble.BoosterType.none)
+					damage += boosterDamages[bubbles[x,y].bubbleScript.boosterType];
+				else
+					damage += bubbleDamages[bubbles[x,y].type];
+			}
+		}
+		for(int i = 0; i < matchBubbles.Count; i++)
+		{
+			if(matchBubbles[i].type != resistType)
+			{
+				if(matchBubbles[i].bubbleScript.boosterType != Bubble.BoosterType.none)
+					damage += boosterDamages[matchBubbles[i].bubbleScript.boosterType];
+				else
+					damage += bubbleDamages[matchBubbles[i].type];
+			}
+			else
+				break;
+		}
+		return damage;
+	}
+
+	Dictionary<FieldItem.Type,int> getItemsForBoosters()
+	{
+		Dictionary<FieldItem.Type,int> allCount = new Dictionary<FieldItem.Type, int> ();
+		for(int i = 0; i < Enum.GetNames(typeof(Bubble.BoosterType)).Length; i++)
+		{
+			allCount.Add((FieldItem.Type)i,0);
+		}
+		for(int i = 0;i < boosterEffectPos.Count; i++)
+		{
+			int x = (int) boosterEffectPos[i].x;
+			int y = (int) boosterEffectPos[i].y;
+			if(bubbles[x,y] != null && bubbles[x,y].type != FieldItem.Type.item)
+				allCount[bubbles[x,y].type] ++;
+		}
+		allCount[matchBubbles[0].type] += matchBubbles.Count;
+		return allCount;
+	}
+
 	public void BubblePointerEnter(Bubble bubble)
 	{
 		if (gameState != GameState.bubblePressed)
@@ -348,6 +392,7 @@ public class Game : MonoBehaviour {
 			}
 			showBoosteEffect(bType);
 			showBoosterCurrentValue();
+			showWizardDamage();
 			if(joints.Count > 0)
 			{
 				JointsPool.Get().Push(joints[joints.Count - 1]);
@@ -379,6 +424,7 @@ public class Game : MonoBehaviour {
 				}
 				showBoosteEffect(bType);
 				showBoosterCurrentValue();
+				showWizardDamage();
 				//DragonManager.instance.SetIndicatorCount(bubble.type,matchBubbles.Count);
 				if(matchBubbles.Count == 3)
 				{
@@ -630,6 +676,7 @@ public class Game : MonoBehaviour {
 				nearMatchItems[i].SetNotChosed();
 			nearMatchItems.RemoveRange(0,nearMatchItems.Count);
 			DragonManager.instance.HideShowedBoosters();
+			WizardManager.instance.HideCurrentWizardDamage();
 		}
 		showBoosteEffect(Bubble.BoosterType.none);
 		if(boosterEffectPos != null)

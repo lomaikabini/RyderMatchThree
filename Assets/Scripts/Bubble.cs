@@ -51,7 +51,7 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		Sprite sprite;
 		if(boosterType == BoosterType.none)
 		{
-			sprite = bubbleImages.Find(i => {return i.name == "bubble_"+type.ToString()? i : null;});
+			sprite = GetBubbleImageByType(type);
 		}
 		else
 		{
@@ -60,6 +60,10 @@ public class Bubble : FieldItem, IPointerDownHandler,IPointerEnterHandler, IPoin
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
+	}
+	public Sprite GetBubbleImageByType(Type t)
+	{
+		return bubbleImages.Find(i => {return i.name == "bubble_"+t.ToString()? i : null;});
 	}
 	public Sprite GetBoosterSpriteByType(Type t,BoosterType bT)
 	{
