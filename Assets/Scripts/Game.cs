@@ -9,6 +9,8 @@ public class Game : MonoBehaviour {
 
 	public int TableSize;
 	[HideInInspector]
+	public int damage;
+	[HideInInspector]
 	public float bubbleSize;
 	public float BubblePadding;
 
@@ -282,7 +284,7 @@ public class Game : MonoBehaviour {
 
 	int calculateDamage()
 	{
-		int damage = 0;
+		damage = 0;
 		FieldItem.Type resistType = WizardManager.instance.GetCurrentWizardResist ();
 		for(int i = 0;i < boosterEffectPos.Count; i++)
 		{
