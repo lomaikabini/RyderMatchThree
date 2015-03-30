@@ -165,8 +165,7 @@ public class DragonManager : MonoBehaviour {
 		float waitTime = 0.5f;
 		WizardManager.instance.CauseDamage (Game.instance.damage, waitTime);
 		yield return new WaitForSeconds (waitTime);
-		//Game.instance.ContinueGame();
-		WizardManager.instance.DropItem ();
+		Game.instance.ContinueGame();
 		BoosterManager.instance.AddCollectItems (matchBubbles);
 		yield return null;
 	}

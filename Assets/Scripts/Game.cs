@@ -8,8 +8,12 @@ using UnityEngine.UI;
 public class Game : MonoBehaviour {
 
 	public int TableSize;
+
 	[HideInInspector]
 	public int damage;
+	[HideInInspector]
+	public int moves;
+
 	[HideInInspector]
 	public float bubbleSize;
 	public float BubblePadding;
@@ -47,7 +51,6 @@ public class Game : MonoBehaviour {
 
 	private int bubblesInAction = 0;
 	private int lastBubblePosY;
-	private int moves;
 
 	private Vector2 boosterPos = Vector2.zero;
 
@@ -1698,13 +1701,25 @@ public class Game : MonoBehaviour {
 		{
 			gameOver();
 		}
-		testovayaKlyaksa ();
 		gameState = GameState.free;
 	}
 
-	void testovayaKlyaksa ()
+	public FieldItem FindSlimeBubble ()
 	{
-		cells [2, 5].SetType (Cell.Type.spot);
+		List<FieldItem> actualPositions = new List<FieldItem> ();
+		for(int i = 0; i < TableSize; i++)
+			for(int j = 0; j < TableSize; j++)
+		{
+			if(bubbles[i,j] != null && bubbles[i,j].type != FieldItem.Type.item && cells[i,j].cellType == Cell.Type.empty)
+				actualPositions.Add(bubbles[i,j]);
+		}
+		return actualPositions [Mathf.RoundToInt (UnityEngine.Random.Range (0, actualPositions.Count))];
+	}
+	public void SetSlime(Vector2 p)
+	{
+		int x = (int)p.x;
+		int y = (int)p.y;
+		cells [x, y].SetType (Cell.Type.spot);
 	}
 
 	void gameDone ()
