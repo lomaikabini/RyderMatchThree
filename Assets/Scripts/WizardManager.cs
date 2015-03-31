@@ -93,7 +93,7 @@ public class WizardManager : MonoBehaviour {
 			if (w.config.slimePeriod != 0 && step % w.config.slimePeriod == 0) {
 				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), w.transform.position));
 			}
-			if(true || w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
+			if(w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
 			{
 				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), w.transform.position));
 			}
