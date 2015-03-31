@@ -360,11 +360,11 @@ public class Game : MonoBehaviour {
 		if(matchBubbles[matchBubbles.Count-1].posY != bubble.posY && matchBubbles[matchBubbles.Count-1].posX != bubble.posX)
 		{
 			//for  horizontals blocks
-			if((separatorsHorizontal[matchBubbles[matchBubbles.Count-1].posX,yMax] != null || cells[matchBubbles[matchBubbles.Count-1].posX,yMax].cellType != Cell.Type.empty || cells[matchBubbles[matchBubbles.Count-1].posX,yMin].cellType != Cell.Type.empty)
-			   && (separatorsHorizontal[bubble.posX,yMax] != null || cells[bubble.posX,yMax].cellType != Cell.Type.empty || cells[bubble.posX,yMin].cellType != Cell.Type.empty)) return;
+			if((separatorsHorizontal[matchBubbles[matchBubbles.Count-1].posX,yMax] != null /*|| cells[matchBubbles[matchBubbles.Count-1].posX,yMax].cellType != Cell.Type.empty || cells[matchBubbles[matchBubbles.Count-1].posX,yMin].cellType != Cell.Type.empty*/)
+			   && (separatorsHorizontal[bubble.posX,yMax] != null /*|| cells[bubble.posX,yMax].cellType != Cell.Type.empty || cells[bubble.posX,yMin].cellType != Cell.Type.empty*/)) return;
 			//for vertical blocks
-			if((separatorsVertical[xMin,matchBubbles[matchBubbles.Count-1].posY] != null || cells[xMin,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty || cells[xMax,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty)
-			   && (separatorsVertical[xMin,bubble.posY] != null || cells[xMin,bubble.posY].cellType != Cell.Type.empty || cells[xMax,bubble.posY].cellType != Cell.Type.empty)) return;
+			if((separatorsVertical[xMin,matchBubbles[matchBubbles.Count-1].posY] != null /*|| cells[xMin,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty || cells[xMax,matchBubbles[matchBubbles.Count-1].posY].cellType != Cell.Type.empty*/)
+			   && (separatorsVertical[xMin,bubble.posY] != null /*|| cells[xMin,bubble.posY].cellType != Cell.Type.empty || cells[xMax,bubble.posY].cellType != Cell.Type.empty*/)) return;
 
 			//dlya iglovix pregrad isklu4itelno iz separatorov
 			if(separatorsHorizontal[xMin,yMax] != null && separatorsVertical[xMin,yMax] != null &&
@@ -1660,16 +1660,16 @@ public class Game : MonoBehaviour {
 
 			//diagonalnie
 			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
-			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			   !((separatorsHorizontal[i-1,j+1] != null /*|| cells[i-1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null /*|| cells[i,j+1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j+1] != null)))
 				equals++;
 			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
-			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
+			   !((separatorsHorizontal[i-1,j] != null /*|| cells[i-1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null /*|| cells[i,j-1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j-1] != null)))
 				equals++;
 			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
-			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
+			   !((separatorsHorizontal[i+1,j] != null /*|| cells[i+1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null /*|| cells[i,j-1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j] != null)))
 				equals++;
 			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
-			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			   !((separatorsHorizontal[i+1,j+1] != null /*|| cells[i+1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null /*|| cells[i,j+1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j+1] != null)))
 				equals++;
 
 			if(equals >=2)
@@ -1782,22 +1782,22 @@ public class Game : MonoBehaviour {
 			}
 			//diagonalnie
 			if(i-1 >= 0 && j+1 < TableSize && newPositions[i-1,j+1] != -1 &&
-			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			   !((separatorsHorizontal[i-1,j+1] != null /*|| cells[i-1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null /*|| cells[i,j+1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j+1] != null)))
 			{
 				positions.Add(new Vector2((float)(i-1),(float)(j+1)));
 			}
 			if(i-1 >= 0 && j-1 >=0 && newPositions[i-1,j-1] != -1 &&
-			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
+			   !((separatorsHorizontal[i-1,j] != null /*|| cells[i-1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null /*|| cells[i,j-1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j-1] != null)))
 			{
 				positions.Add(new Vector2((float)(i-1),(float)(j-1)));
 			}
 			if(i+1 < TableSize && j-1 >= 0 && newPositions[i+1,j-1] != -1 &&
-			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
+			   !((separatorsHorizontal[i+1,j] != null /*|| cells[i+1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null /*|| cells[i,j-1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j] != null)))
 			{
 				positions.Add(new Vector2((float)(i+1),(float)(j-1)));
 			}
 			if(i+1 < TableSize && j+1 < TableSize && newPositions[i+1,j+1] != -1 &&
-			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
+			   !((separatorsHorizontal[i+1,j+1] != null /*|| cells[i+1,j].cellType != Cell.Type.empty*/ || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null /*|| cells[i,j+1].cellType != Cell.Type.empty*/ || separatorsHorizontal[i,j+1] != null)))
 			{
 				positions.Add(new Vector2((float)(i+1),(float)(j+1)));
 			}
