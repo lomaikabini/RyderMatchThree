@@ -13,6 +13,7 @@ public class BubbleEditorDamage : MonoBehaviour {
 	public Bubble.BoosterType boosterType;
 	public bool isGoal =  false;
 	public bool isCell = false;
+	public bool isWizard = false;
 	public bool isBooster = false;
 	void Start()
 	{

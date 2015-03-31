@@ -40,6 +40,8 @@ public class Game : MonoBehaviour {
 		InAction
 	}
 
+	public List<Sprite> goalSprites;
+
 	private float speedStart = 9f;
 	private float speedMax = 12f;
 	private float speedBoost = 3.5f;
@@ -205,7 +207,14 @@ public class Game : MonoBehaviour {
 					}
 					catch
 					{
-						Debug.LogError("Goal type didn't find!!!");
+						try
+						{
+							sp = goalSprites.Find(v => v.name == k.Key);
+						}
+						catch
+						{
+							Debug.LogError("Goal type didn't find!!!");
+						}
 					}
 				}
 			}
@@ -837,7 +846,15 @@ public class Game : MonoBehaviour {
 		DragonManager.instance.GetDragonItems (list,boosterBubbles,boosterPos);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
 	}
-	
+	public void KelledWizard()
+	{
+		string t = "wizard";
+		if(goals.ContainsKey(t))
+		{
+			goals[t] --;
+			UIManager.instance.SetGoalView(t,goals[t]);
+		}
+	}
 	public void ContinueGame()
 	{
 		nearMatchItems.RemoveRange(0,nearMatchItems.Count);

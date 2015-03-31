@@ -39,6 +39,8 @@ public class MyEditor : MonoBehaviour {
 
 	public GameObject rewriteLvlMenu;	
 
+	public List<Sprite> goalSprites;
+
 	private float bubbleSize;
 	private float bubblesOffset;
 	private int TableSize = 7;
@@ -223,7 +225,14 @@ public class MyEditor : MonoBehaviour {
 
 	public void OnGoalChanged(BubbleEditorDamage b, int count)
 	{
-		if(b.isCell)
+		if(b.isWizard)
+		{
+			if(levelEditor.goals.ContainsKey("wizard"))
+				levelEditor.goals["wizard"] = count;
+			else
+				levelEditor.goals.Add("wizard",count);
+		}
+		else if(b.isCell)
 		{
 			if(levelEditor.goals.ContainsKey(b.cellType.ToString()))
 			{
@@ -505,6 +514,14 @@ public class MyEditor : MonoBehaviour {
 		baEditor.cellType = Cell.Type.box;
 		baEditor.img.sprite = cell.getKitByType (Cell.Type.box).sprites [0];
 
+
+		GameObject w = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+		BubbleEditorDamage wEditor = w.GetComponent<BubbleEditorDamage>();
+		w.transform.SetParent(goalContainer);
+		w.transform.localScale = new Vector3(1f,1f,1f);
+		wEditor.isGoal = true;
+		wEditor.isWizard = true;
+		wEditor.img.sprite = goalSprites.Find(c => c.name.Equals("wizard"));
 	}
 
 	void instantiateEditorBubblesDamage ()

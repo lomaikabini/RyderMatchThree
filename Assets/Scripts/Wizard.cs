@@ -23,6 +23,8 @@ public class Wizard : MonoBehaviour {
 	public void CauseDamage(int damage,float time)
 	{
 		currentHealth -= damage;
+		if (currentHealth <= 0)
+			Game.instance.KelledWizard ();
 		float val = ((float)damage / (float)config.health);
 		val = Mathf.Max(0f,healthBarFact.fillAmount-val);
 		StartCoroutine (moveHealthBar (time, val));
