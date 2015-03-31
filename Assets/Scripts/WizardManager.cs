@@ -90,14 +90,17 @@ public class WizardManager : MonoBehaviour {
 		if (w != null) {
 			int step = Game.instance.moves;
 			localMoves = step;
+			bool drop = false;
 			if (w.config.slimePeriod != 0 && step % w.config.slimePeriod == 0) {
+				drop = true;
 				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), w.transform.position));
 			}
 			if(w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
 			{
+				drop = true;
 				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), w.transform.position));
 			}
-			else
+			if(!drop)
 				Game.instance.ReleaseGame ();
 		}
 		else
