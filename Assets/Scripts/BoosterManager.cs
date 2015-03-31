@@ -21,6 +21,12 @@ public class BoosterManager : MonoBehaviour {
 		boosterSizes.Add (Bubble.BoosterType.vertical, 5);
 	}
 
+	public void Clear()
+	{
+		for (int i =0; i < itemsCollect.Length; i++)
+			itemsCollect [i] = 0;
+	}
+
 	public void AddCollectItems(List<FieldItem.Type> items)
 	{
 		for(int i = 0; i < items.Count; i++)

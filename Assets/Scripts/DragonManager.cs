@@ -253,22 +253,14 @@ public class DragonManager : MonoBehaviour {
 		float newValue = Mathf.Max (0f, dragon.overlayFact.fillAmount - value);
 		dragon.overlayCurrent.fillAmount = newValue; 
 	}
-//	public void IncreaseIndicatorCurrent(FieldItem.Type t,int count = 1)
-//	{
-//		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
-//		float value = ((float) count) / maxCount;
-//		Dragon dragon = dragons.Find(o => o.type == t);
-//		float newValue = Mathf.Max (0f, dragon.overlayCurrent.fillAmount - value);
-//		dragon.overlayCurrent.fillAmount = newValue; 
-//	}
-//	public void DecreaseIndicatorCurrent(FieldItem.Type t,int count = 1)
-//	{
-//		int maxCount = BoosterManager.instance.itemsRequire[(int)t];
-//		float value = ((float) count) / maxCount;
-//		Dragon dragon = dragons.Find(o => o.type == t);
-//		float newValue = Mathf.Min (1f, dragon.overlayCurrent.fillAmount + value);
-//		dragon.overlayCurrent.fillAmount = newValue; 
-//	}
+	public void Clear()
+	{
+		foreach(Dragon d in dragons)
+		{
+			d.overlayFact.fillAmount = 1f;
+			d.overlayCurrent.fillAmount = 1f;
+		}
+	}
 	public void IncreaseIndicatorFact(FieldItem.Type t)
 	{
 		int maxCount = BoosterManager.instance.itemsRequire[(int)t];

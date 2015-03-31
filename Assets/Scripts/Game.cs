@@ -721,6 +721,8 @@ public class Game : MonoBehaviour {
 				if(separatorsVertical[i,j]!= null)
 					Destroy(separatorsVertical[i,j].gameObject);
 		}
+		BoosterManager.instance.Clear ();
+		DragonManager.instance.Clear ();
 		goals.Clear ();
 		bubbleDamages.Clear ();
 		boosterDamages.Clear ();
