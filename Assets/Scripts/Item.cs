@@ -16,7 +16,8 @@ public class Item : FieldItem {
 		key,
 		crystal,
 		gold,
-		bomb
+		bomb,
+		tooth
 	}
 	public override void SetItemScript()
 	{
@@ -33,7 +34,7 @@ public class Item : FieldItem {
 		this.enabled = true;
 		this.GetComponent<Bubble> ().enabled = false;
 		type = tp;
-		Sprite sprite = spritesIdle.Find(i => {return i.name == "item_"+itemType.ToString()? i : null;});
+		Sprite sprite = FindSpriteByType (itemType); 
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
@@ -41,7 +42,10 @@ public class Item : FieldItem {
 		RealeaseItem ();
 		SetNotChosed ();
 	}
-	
+	public Sprite FindSpriteByType(ItemType t)
+	{
+		return spritesIdle.Find(i => {return i.name == "item_"+t.ToString()? i : null;});
+	}
 	public override void SetChosed ()
 	{
 		playChosedAnim ();

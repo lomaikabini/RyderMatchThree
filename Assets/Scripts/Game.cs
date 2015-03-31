@@ -654,23 +654,13 @@ public class Game : MonoBehaviour {
 	public void BubblePointerUp (Bubble bubble)
 	{
 		if (matchBubbles.Count >= 3) {
-//			for(int i = 0; i < boosterEffectPos.Count;i++)
-//			{
-//				int x =(int) boosterEffectPos[i].x;
-//				int y =(int) boosterEffectPos[i].y;
-//				if(bubbles[x,y] != null)
-//				{
-//					matchBubbles.Add(bubbles[x,y]);
-//					bubbles[x,y].RealeaseItem();
-//				}
-//			}
-
 			for(int i = 0; i < nearMatchItems.Count; i++)
 			{
 				matchBubbles.Add(nearMatchItems[i]);
 			}
 			destroyFoundBubbles (matchBubbles);
 			moves--;
+			gameState = GameState.InAction;
 		} else if(gameState == GameState.bubblePressed)
 		{
 			gameState = GameState.free;
@@ -802,7 +792,7 @@ public class Game : MonoBehaviour {
 		{
 			bubbles[list[i].posX,list[i].posY] = null;
 		}
-
+		Debug.Log (list.Count);
 		List<FieldItem> boosterBubbles = new List<FieldItem> ();
 		for(int i =0; i < boosterEffectPos.Count; i++)
 		{
@@ -1704,7 +1694,7 @@ public class Game : MonoBehaviour {
 		gameState = GameState.free;
 	}
 
-	public FieldItem FindSlimeBubble ()
+	public FieldItem FindConvertBubble ()
 	{
 		List<FieldItem> actualPositions = new List<FieldItem> ();
 		for(int i = 0; i < TableSize; i++)
@@ -1715,11 +1705,15 @@ public class Game : MonoBehaviour {
 		}
 		return actualPositions [Mathf.RoundToInt (UnityEngine.Random.Range (0, actualPositions.Count))];
 	}
-	public void SetSlime(Vector2 p)
+	public void SetSlime(int x, int y)
 	{
-		int x = (int)p.x;
-		int y = (int)p.y;
 		cells [x, y].SetType (Cell.Type.spot);
+	}
+	public void SetTooth(int x, int y)
+	{
+		bubbles [x, y] = bubbles [x, y].GetComponent<Item> ();
+		bubbles [x, y].itemScript.itemType = Item.ItemType.tooth;
+		bubbles [x, y].SetType (FieldItem.Type.item, bubbleSize, Bubble.BoosterType.none);
 	}
 
 	void gameDone ()

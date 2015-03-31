@@ -12,6 +12,7 @@ public class WizardManager : MonoBehaviour {
 	public GameObject cellPrefab;
 	public Transform canvas;
 	private List<Wizard> wizards;
+	private int localMoves;
 	public static WizardManager instance;
 
 	void Awake()
@@ -28,6 +29,9 @@ public class WizardManager : MonoBehaviour {
 	public void Initialize(List<WizardEssence> list)
 	{
 		wizards = new List<Wizard> ();
+		foreach(Transform child in wizardContainer) {
+			Destroy(child.gameObject);
+		}
 		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
 		for(int i = 0; i < list.Count; i++)
 		{
@@ -68,6 +72,12 @@ public class WizardManager : MonoBehaviour {
 	}
 	public void DropItem()
 	{
+		if(Game.instance.moves ==  localMoves)
+		{
+			Game.instance.ReleaseGame ();
+			return;
+		}
+		//Game.instance.checkPossibleMatch();
 		Wizard w = null;
 		for(int i = 0; i < wizards.Count; i++)
 		{
@@ -77,17 +87,66 @@ public class WizardManager : MonoBehaviour {
 				break;
 			}
 		}
-		if (w != null)
-		{
+		if (w != null) {
 			int step = Game.instance.moves;
-			if(true || step % w.config.slimePeriod == 0)
-			{
-				StartCoroutine(dropSlime(Game.instance.FindSlimeBubble(),w.transform.position));
+			localMoves = step;
+			if (w.config.slimePeriod != 0 && step % w.config.slimePeriod == 0) {
+				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), w.transform.position));
 			}
+			if(true || w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
+			{
+				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), w.transform.position));
+			}
+			else
+				Game.instance.ReleaseGame ();
 		}
+		else
+			Game.instance.ReleaseGame ();
 
-	
 	}
+
+
+	IEnumerator dropTooth(FieldItem b,Vector3 startPos)
+	{
+		yield return new WaitForEndOfFrame ();
+		GameObject obj = Instantiate (dropItemPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+		obj.transform.SetParent (canvas);
+		obj.transform.localScale = new Vector3 (1f, 1f, 1f);
+		obj.transform.position = startPos;
+		obj.GetComponent<Image> ().sprite = bubblePrefab.GetComponent<Item> ().FindSpriteByType (Item.ItemType.tooth);
+		obj.GetComponent<RectTransform> ().sizeDelta = new Vector2 (Game.instance.bubbleSize, Game.instance.bubbleSize);
+		Vector3 startScale = new Vector3 (1f, 1f, 1f);
+		Vector3 endScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		Vector3 endPos = startPos + new Vector3 (0.5f, 0.5f, 0f);
+		float cof = 0;
+		while(cof < 1f)
+		{
+			cof +=Time.deltaTime*5f;
+			cof = Mathf.Min(1f,cof);
+			obj.transform.position = Vector3.Lerp(startPos,endPos,cof);
+			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			yield return new WaitForEndOfFrame();
+		}
+		startScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		endScale = new Vector3 (1f, 1f, 1f);
+		startPos = obj.transform.position;
+		endPos = b.transform.position;
+		cof = 0f;
+		while(cof < 1f)
+		{
+			cof +=Time.deltaTime*5f;
+			cof = Mathf.Min(1f,cof);
+			obj.transform.position = Vector3.Lerp(startPos,endPos,cof);
+			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			yield return new WaitForEndOfFrame();
+		}
+		Game.instance.SetTooth (b.posX, b.posY);
+		Destroy (obj);
+		Game.instance.checkPossibleMatch();
+		yield return null;
+		
+	}
+
 	IEnumerator dropSlime(FieldItem b,Vector3 startPos)
 	{
 		yield return new WaitForEndOfFrame ();
@@ -109,6 +168,22 @@ public class WizardManager : MonoBehaviour {
 			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
 			yield return new WaitForEndOfFrame();
 		}
+		startScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		endScale = new Vector3 (1f, 1f, 1f);
+		startPos = obj.transform.position;
+		endPos = b.transform.position;
+		cof = 0f;
+		while(cof < 1f)
+		{
+			cof +=Time.deltaTime*5f;
+			cof = Mathf.Min(1f,cof);
+			obj.transform.position = Vector3.Lerp(startPos,endPos,cof);
+			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			yield return new WaitForEndOfFrame();
+		}
+		Game.instance.SetSlime (b.posX, b.posY);
+		Destroy (obj);
+		Game.instance.checkPossibleMatch();
 		yield return null;
 
 	}

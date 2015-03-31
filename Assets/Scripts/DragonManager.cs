@@ -210,15 +210,16 @@ public class DragonManager : MonoBehaviour {
 		if(movingBoosters==0)
 		{
 			dropBoosters.RemoveRange(0,dropBoosters.Count);
-			Game.instance.checkPossibleMatch();
+			WizardManager.instance.DropItem();
+			//Game.instance.checkPossibleMatch();
 			//Game.instance.ReleaseGame ();
 		}
 		yield return null;
 	}
 	public void DropBoosters()
 	{
-		if(dropBoosters.Count == 0)
-			Game.instance.ReleaseGame ();
+		if (dropBoosters.Count == 0)
+			WizardManager.instance.DropItem ();//Game.instance.ReleaseGame ();
 		else
 		{
 			for(int i = 0; i < dropBoosters.Count;i++)
