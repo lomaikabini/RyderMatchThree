@@ -12,8 +12,12 @@ public class DragonManager : MonoBehaviour {
 	private int movingCount = 0;
 	private int movingBoosters = 0;
 	private List<FieldItem.Type> matchBubbles;
+	private List<KeyValuePair<Vector2,Vector2>> blockedCells = new List<KeyValuePair<Vector2, Vector2>> ();
+	private List<Separator> usedSeparators = new List<Separator> ();
+	private List<Cell> usedCells = new List<Cell> ();
 	List<FieldItem> boosterList;
 	Vector2 boosterPos;
+	List<Vector2> allBoosterPos;
 	public List<KeyValuePair<Dragon,FieldItem>> dropBoosters = new List<KeyValuePair<Dragon,FieldItem>>();
 
 	void Awake()
@@ -39,7 +43,7 @@ public class DragonManager : MonoBehaviour {
 		FieldItem itm = Game.instance.CreateBooster (dragon);
 		dropBoosters.Add (new KeyValuePair<Dragon, FieldItem> (dragon, itm));
 	}
-	public void GetDragonItems(List<FieldItem> list,List<FieldItem> boosterList,Vector2 boosterPos)
+	public void GetDragonItems(List<FieldItem> list,List<FieldItem> boosterList,Vector2 boosterPos,List<Vector2> allBoosterPos)
 	{
 		//TODO: vozmojno tyt naod bydet ydalyat' dyblikati s boosterlist
 		matchBubbles = new List<FieldItem.Type>();
@@ -49,6 +53,11 @@ public class DragonManager : MonoBehaviour {
 		movingCount = list.Count;
 		this.boosterList = boosterList;
 		this.boosterPos = boosterPos;
+		this.allBoosterPos =new List<Vector2>(allBoosterPos);
+		usedSeparators.RemoveRange (0, usedSeparators.Count);
+		usedCells.RemoveRange (0, usedCells.Count);
+		blockedCells.RemoveRange (0, blockedCells.Count);
+
 		StartCoroutine (moveObjectsToDragons (list));
 	}
 	IEnumerator moveBubblesBooster()
@@ -68,6 +77,11 @@ public class DragonManager : MonoBehaviour {
 					if( (q == startX-count || q == startX+count || w == startY-count || w == startY+count) /*&& boosterList.Exists(o=> o.posX == startX+q && o.posY == startY+w)*/)
 					{
 						FieldItem itm = boosterList.Find(o=> o.posX == q && o.posY == w);
+						if(allBoosterPos.Exists(o=> o.x == (float)q && o.y == w))
+						{
+							//vozmojno dvoinoi zvriv
+							Game.instance.explositionFromBooster(new Vector2((float)q,(float)w));
+						}
 						if(itm != null)
 						{
 							StartCoroutine(ScaleUpObj(itm));
@@ -92,6 +106,8 @@ public class DragonManager : MonoBehaviour {
 		for(int i =0;i < list.Count;i++)
 		{
 			StartCoroutine(ScaleUpObj(list[i]));
+			Game.instance.explositionNearSeparators(list[i],ref blockedCells,ref usedSeparators);
+			Game.instance.explositionNearBlocks(list[i],blockedCells,ref usedCells);
 			yield return new WaitForSeconds(0.12f);
 		}
 		yield return null;

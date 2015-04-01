@@ -683,6 +683,7 @@ public class Game : MonoBehaviour {
 			nearMatchItems.RemoveRange(0,nearMatchItems.Count);
 			DragonManager.instance.HideShowedBoosters();
 			WizardManager.instance.HideCurrentWizardDamage();
+			boosterEffectPos.RemoveRange(0, boosterEffectPos.Count);
 		}
 		showBoosteEffect(Bubble.BoosterType.none);
 		if(boosterEffectPos != null)
@@ -798,9 +799,9 @@ public class Game : MonoBehaviour {
 			}
 		}
 
-		explositionFromBooster (boosterEffectPos);
-		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
-		explositionNearBlocks (list,blockedCells);
+//		explositionFromBooster (boosterEffectPos);
+//		List<KeyValuePair<Vector2,Vector2>> blockedCells = explositionNearSeparators (list);
+//		explositionNearBlocks (list,blockedCells);
 		for(int i = 0;i < list.Count; i++)
 		{
 			bubbles[list[i].posX,list[i].posY] = null;
@@ -844,8 +845,7 @@ public class Game : MonoBehaviour {
 				}
 			}
 		}
-		
-		DragonManager.instance.GetDragonItems (list,boosterBubbles,boosterPos);
+		DragonManager.instance.GetDragonItems (list,boosterBubbles,boosterPos,boosterEffectPos);
 		tableAnimator.Play ("DarkenTheScreen",0,0f);
 	}
 	public void KelledWizard()
@@ -904,7 +904,21 @@ public class Game : MonoBehaviour {
 //			}
 		}
 	}
-	
+	public void explositionFromBooster(Vector2 b)
+	{
+		if (!(b.x < TableSize && b.x >= 0 && b.y < TableSize && b.y >= 0))
+			return;
+		giveDamageForSeparator((int)b.x,(int)b.y,Separator.Type.horizontal,999);
+		giveDamageForSeparator((int)b.x,(int)b.y,Separator.Type.vertical,999);
+		if((int)b.y + 1 < TableSize){
+			giveDamageForSeparator((int)b.x,(int)b.y + 1,Separator.Type.horizontal,999);
+		}
+		if((int)b.y - 1 >= 0){
+			giveDamageForSeparator((int)b.x - 1,(int)b.y,Separator.Type.vertical,999);
+		}
+		
+		giveDamageForCell(cells[(int)b.x,(int)b.y],999);
+	}
 	List<KeyValuePair<Vector2,Vector2>> explositionNearSeparators (List<FieldItem> list)
 	{
 		List<KeyValuePair<Vector2,Vector2>> result = new List<KeyValuePair<Vector2,Vector2>> ();
@@ -931,6 +945,27 @@ public class Game : MonoBehaviour {
 			}
 		}
 		return result;
+	}
+
+	public void explositionNearSeparators(FieldItem b,ref List<KeyValuePair<Vector2,Vector2>> result,ref List<Separator> usedSeparators)
+	{
+		if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.horizontal)){
+			result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)(b.posY-1))));
+		}
+		if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY,Separator.Type.vertical)){
+			result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX+1,(float)(b.posY))));
+		}
+		
+		if(b.posY + 1 < TableSize){
+			if(giveDamageForSeparator(ref usedSeparators,b.posX,b.posY + 1,Separator.Type.horizontal)){
+				result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)(b.posY+1))));
+			}
+		}
+		if(b.posX - 1 >= 0){
+			if(giveDamageForSeparator(ref usedSeparators,b.posX - 1,b.posY,Separator.Type.vertical)){
+				result.Add(new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX-1,(float)(b.posY))));
+			}
+		}
 	}
 
 	bool giveDamageForSeparator(ref List<Separator> usedSeparators,int x,int y, Separator.Type type,int damage = 1)
@@ -961,6 +996,31 @@ public class Game : MonoBehaviour {
 			return true;
 		}
 		return false;
+	}
+	void giveDamageForSeparator(int x,int y, Separator.Type type,int damage = 1)
+	{
+		if (x > TableSize || x < 0 || y > TableSize || y < 0)
+			return;
+		Separator separ;
+		if (type == Separator.Type.vertical)
+			separ = separatorsVertical [x, y];
+		else
+			separ = separatorsHorizontal [x, y];
+		if (separ == null)
+			return;
+		if(separ.GiveDamage(damage))
+		{
+			if(type == Separator.Type.vertical)
+			{
+				Destroy(separatorsVertical[x,y].gameObject);
+				separatorsVertical[x,y] = null;
+			}
+			else
+			{
+				Destroy(separatorsHorizontal[x,y].gameObject);
+				separatorsHorizontal[x,y] = null;
+			}
+		}
 	}
 
 	void explositionNearBlocks(List<FieldItem> list,List<KeyValuePair<Vector2,Vector2>> blockedCells)
@@ -993,7 +1053,31 @@ public class Game : MonoBehaviour {
 			}
 		}
 	}
-
+	public void explositionNearBlocks(FieldItem b,List<KeyValuePair<Vector2,Vector2>> blockedCells,ref List<Cell> usedCells)
+	{
+		KeyValuePair<Vector2,Vector2> k;
+		giveDamageForCell(ref usedCells,cells[b.posX,b.posY]);
+		if(b.posY + 1 < TableSize){
+			k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)b.posY+1));
+			if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+				giveDamageForCell(ref usedCells,cells[b.posX,b.posY + 1]);
+		}
+		if(b.posY - 1 >= 0){
+			k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX,(float)b.posY-1));
+			if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+				giveDamageForCell(ref usedCells,cells[b.posX,b.posY - 1]);
+		}
+		if(b.posX + 1 < TableSize){
+			k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX+1,(float)b.posY));
+			if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+				giveDamageForCell(ref usedCells,cells[b.posX + 1,b.posY]);
+		}
+		if(b.posX - 1 >= 0){
+			k = new KeyValuePair<Vector2, Vector2>(new Vector2((float)b.posX,(float)b.posY), new Vector2((float)b.posX-1,(float)b.posY));
+			if(!blockedCells.Exists(o=> o.Key == k.Key && o.Value == k.Value))
+				giveDamageForCell(ref usedCells,cells[b.posX - 1,b.posY]);
+		}
+	}
 	void giveDamageForCell(ref List<Cell> usedCells, Cell c,int damage = 1)
 	{
 		if(!usedCells.Exists (e => e == c))
@@ -1009,7 +1093,17 @@ public class Game : MonoBehaviour {
 			}
 		}
 	}
-
+	void giveDamageForCell(Cell c,int damage = 1)
+	{
+		String type = "";
+		if(c.GiveDamage(damage,ref type)){
+			if(goals.ContainsKey(type))
+			{
+				goals[type] --;
+				UIManager.instance.SetGoalView(type,goals[type]);
+			}
+		}
+	}
 	void dropBalls (bool withSlip = false)
 	{
 		for(int j = 1; j < TableSize; j++)

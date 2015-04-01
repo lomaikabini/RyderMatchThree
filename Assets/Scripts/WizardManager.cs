@@ -87,9 +87,9 @@ public class WizardManager : MonoBehaviour {
 				break;
 			}
 		}
+		int step = Game.instance.moves;
+		localMoves = step;
 		if (w != null) {
-			int step = Game.instance.moves;
-			localMoves = step;
 			bool drop = false;
 			if (w.config.slimePeriod != 0 && step % w.config.slimePeriod == 0) {
 				drop = true;
@@ -101,10 +101,10 @@ public class WizardManager : MonoBehaviour {
 				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), w.transform.position));
 			}
 			if(!drop)
-				Game.instance.ReleaseGame ();
+				Game.instance.checkPossibleMatch();
 		}
 		else
-			Game.instance.ReleaseGame ();
+			Game.instance.checkPossibleMatch();
 
 	}
 
