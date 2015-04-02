@@ -11,6 +11,8 @@ public class WizardManager : MonoBehaviour {
 	public GameObject dropItemPrefab;
 	public GameObject cellPrefab;
 	public Transform canvas;
+	public Transform spawnPoints;
+	public Transform dropPoint;
 	private List<Wizard> wizards;
 	private int localMoves;
 	public static WizardManager instance;
@@ -38,8 +40,7 @@ public class WizardManager : MonoBehaviour {
 			if(list[i].health <= 0) continue;
 			GameObject obj = Instantiate(wizardPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			obj.transform.SetParent(wizardContainer);
-			obj.transform.localPosition = Vector3.zero;
-			obj.transform.localScale = new Vector3(1f,1f,1f);
+			obj.transform.position = spawnPoints.GetChild(wizards.Count).position; //Vector3.zero;
 			Wizard w = obj.GetComponent<Wizard>();
 			w.config = list[i];
 			w.currentHealth = list[i].health;
@@ -93,12 +94,12 @@ public class WizardManager : MonoBehaviour {
 			bool drop = false;
 			if (w.config.slimePeriod != 0 && step % w.config.slimePeriod == 0) {
 				drop = true;
-				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), w.transform.position));
+				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), dropPoint.position/*w.transform.position*/));
 			}
 			if(w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
 			{
 				drop = true;
-				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), w.transform.position));
+				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), dropPoint.position));
 			}
 			if(!drop)
 				Game.instance.checkPossibleMatch();
@@ -192,6 +193,7 @@ public class WizardManager : MonoBehaviour {
 	}
 	public void CauseDamage(int damage,float time)
 	{
+		int count = 0;
 		for(int i = 0; i < wizards.Count; i++)
 		{
 			if(wizards[i].currentHealth > 0)
@@ -201,12 +203,16 @@ public class WizardManager : MonoBehaviour {
 					int leftDamage = damage - wizards[i].currentHealth;
 					wizards[i].CauseDamage(damage,time);
 					int j = i;
+					count++;
 					while(j+1 < wizards.Count && leftDamage > 0f)
 					{
 						j++;
 						int d;
 						if(wizards[j].currentHealth < leftDamage)
+						{
+							count++;
 							d = leftDamage - wizards[j].currentHealth;
+						}
 						else
 							d = 0;
 						wizards[j].CauseDamage(leftDamage,time);
@@ -215,6 +221,7 @@ public class WizardManager : MonoBehaviour {
 				}
 				else
 					wizards[i].CauseDamage(damage,time);
+				WorldCameraManager.instance.Run(count);
 				return;
 			}
 		}

@@ -7,9 +7,16 @@ public class WorldCameraManager : MonoBehaviour {
 	public Transform worldCamera;
 	public CurvySpline spline;
 	public List<CurvySplineSegment> endOfPathList;
+	public static WorldCameraManager instance;
 	private List<List<Vector3>> path = new List<List<Vector3>>();
 	private int pathPart = 0;
 	private float cameraSpeed = 200f;
+
+	void Awake()
+	{
+		instance = this;
+	}
+
 	void Update()
 	{
 		if(path.Count == 0)
@@ -29,20 +36,23 @@ public class WorldCameraManager : MonoBehaviour {
 					worldCamera.transform.position = path[0][0];
 				}
 			}
-			if(routePathSegment.Count > 0)
-				Run();
+			if(path.Count > 0)
+				Run(1);
 		}
 	}
 
-	void Run ()
+	public void Run (int count)
 	{
-		StartCoroutine (moveCamera ());
+		if (count <= 0)
+			return;
+		StartCoroutine (moveCamera (count));
 	}
-	IEnumerator moveCamera()
+	IEnumerator moveCamera(int count)
 	{
 		yield return new WaitForEndOfFrame ();
 		if (pathPart + 1 > path.Count)
 			yield break;
+		count--;
 		List<Vector3> p = path [pathPart];
 		for(int i = 0; i < p.Count; i++)
 		{
@@ -59,6 +69,7 @@ public class WorldCameraManager : MonoBehaviour {
 			}
 			yield return new WaitForEndOfFrame();
 		}
+		Run (count);
 		pathPart++;
 	}
 }
