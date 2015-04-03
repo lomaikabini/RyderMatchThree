@@ -5,5 +5,6 @@ public class BubbleEssence {
 	public int posX;
 	public int posY;
 	public FieldItem.Type type;
+	public Bubble.BoosterType boosterType;
 	public BubbleEssence(){}
 }

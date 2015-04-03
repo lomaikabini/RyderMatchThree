@@ -159,6 +159,17 @@ public class Game : MonoBehaviour {
 			insertBubbleInTable(bubble,false);
 			moveBubbles.Add(bubble);
 		}
+		for(int i =0; i < config.boosters.Count;i++)
+		{
+			GameObject obj = BubblePool.Get().Pull();
+			Bubble bubble = obj.GetComponent<Bubble>(); 
+			bubble.posX = config.boosters[i].posX;
+			bubble.posY = config.boosters[i].posY;
+			bubbles[bubble.posX,bubble.posY] = bubble;
+			bubble.SetType(config.boosters[i].type,bubbleSize,config.boosters[i].boosterType);
+			insertBubbleInTable(bubble,false);
+			moveBubbles.Add(bubble);		
+		}
 		for(int i = 0; i < config.items.Count;i++)
 		{
 			GameObject obj = BubblePool.Get().Pull();

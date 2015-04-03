@@ -53,6 +53,7 @@ public class MyEditor : MonoBehaviour {
 	CellEditor insertCell;
 	SeparatorEditor insertSeparator;
 	BubbleEditor insertBubble;
+	BubbleEditor insertBooster;
 	ItemEditor insertItem;
 	public enum EditorState
 	{
@@ -60,6 +61,7 @@ public class MyEditor : MonoBehaviour {
 		insertBubbles,
 		insertSeparators,
 		insertCells,
+		insertBoosters,
 		clear,
 		free
 	}
@@ -80,6 +82,7 @@ public class MyEditor : MonoBehaviour {
 		instantiateEditorItems ();
 		instantiateEditorSeparators ();
 		instantiateEditorBubbles ();
+		instantiateEditorBoosters ();
 		instantiateEditorBubblesInGame ();
 		instantiateEditorBubblesDamage ();
 		instantiateEditorBoostersDamage ();
@@ -186,7 +189,11 @@ public class MyEditor : MonoBehaviour {
 		editorState = EditorState.insertBubbles;
 		insertBubble = b;
 	}
-
+	public void OnMenuBoosterClick (BubbleEditor b)
+	{
+		editorState = EditorState.insertBoosters;
+		insertBooster = b;
+	}
 	public void OnMenuItemClick(ItemEditor it)
 	{
 		editorState = EditorState.insertItems;
@@ -281,6 +288,11 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.items[posX,posY].gameObject);
 				levelEditor.items[posX,posY] = null;
 			}
+			if(levelEditor.boosters[posX,posY] != null)
+			{
+				Destroy(levelEditor.boosters[posX,posY].gameObject);
+				levelEditor.boosters[posX,posY] = null;
+			}
 			levelEditor.cells[posX,posY].SetType(insertCell.cellInfo.type,-1,insertCell.cellInfo.lives);
 		}
 		if(editorState == EditorState.insertSeparators)
@@ -326,6 +338,11 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.items[posX,posY].gameObject);
 				levelEditor.items[posX,posY] = null;
 			}
+			if(levelEditor.boosters[posX,posY] != null)
+			{
+				Destroy(levelEditor.boosters[posX,posY].gameObject);
+				levelEditor.boosters[posX,posY] = null;
+			}
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
 			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
 			bubble.bubbleConfig.posX = posX;
@@ -351,6 +368,11 @@ public class MyEditor : MonoBehaviour {
 				Destroy(levelEditor.items[posX,posY].gameObject);
 				levelEditor.items[posX,posY] = null;
 			}
+			if(levelEditor.boosters[posX,posY] != null)
+			{
+				Destroy(levelEditor.boosters[posX,posY].gameObject);
+				levelEditor.boosters[posX,posY] = null;
+			}
 			GameObject obj = Instantiate(itemEditorPrefab,Vector3.zero, Quaternion.identity) as GameObject;
 			ItemEditor it = obj.GetComponent<ItemEditor>();
 			it.itemConfig.posX = posX;
@@ -358,6 +380,38 @@ public class MyEditor : MonoBehaviour {
 			levelEditor.items[posX,posY] =  it;
 			it.SetType(insertItem.itemConfig.type,bubbleSize);
 			insertItemInTable(it);
+		}
+		if(editorState == EditorState.insertBoosters)
+		{
+			if(levelEditor.bubbles[posX,posY] != null)
+			{
+				Destroy(levelEditor.bubbles[posX,posY].gameObject);
+				levelEditor.bubbles[posX,posY] = null;
+			}
+			if(levelEditor.cells[posX,posY].cellInfo.type != Cell.Type.empty)
+			{
+				levelEditor.cells[posX,posY].SetType(Cell.Type.empty,-1,1);
+			}
+			if(levelEditor.items[posX,posY] != null)
+			{
+				Destroy(levelEditor.items[posX,posY].gameObject);
+				levelEditor.items[posX,posY] = null;
+			}
+			if(levelEditor.boosters[posX,posY] != null)
+			{
+				Destroy(levelEditor.boosters[posX,posY].gameObject);
+				levelEditor.boosters[posX,posY] = null;
+			}
+
+			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
+			BubbleEditor bubble = obj.GetComponent<BubbleEditor>(); 
+			bubble.bubbleConfig.posX = posX;
+			bubble.bubbleConfig.posY = posY;
+			levelEditor.boosters[posX,posY] = bubble;
+			bubble.SetBoosterType (insertBooster.bubbleConfig.type, bubbleSize, insertBooster.bubbleConfig.boosterType,insertBooster.img.sprite);
+			bubble.tx.enabled = false;
+			insertBubbleInTable(bubble);
+
 		}
 		if(editorState == EditorState.clear)
 		{
@@ -381,6 +435,11 @@ public class MyEditor : MonoBehaviour {
 			{
 				Destroy(levelEditor.items[posX,posY].gameObject);
 				levelEditor.items[posX,posY] = null;
+			}
+			if(levelEditor.boosters[posX,posY] != null)
+			{
+				Destroy(levelEditor.boosters[posX,posY].gameObject);
+				levelEditor.boosters[posX,posY] = null;
 			}
 		}
 	}
@@ -409,6 +468,11 @@ public class MyEditor : MonoBehaviour {
 			{
 				Destroy(levelEditor.items[i,j].gameObject);
 				levelEditor.items[i,j] = null;
+			}
+			if(levelEditor.boosters[i,j] != null)
+			{
+				Destroy(levelEditor.boosters[i,j].gameObject);
+				levelEditor.boosters[i,j] = null;
 			}
 		}
 	}
@@ -476,6 +540,31 @@ public class MyEditor : MonoBehaviour {
 			bubEditor.bubbleConfig.type = type;
 			bubEditor.isMenu = true;
 			bubEditor.img.sprite = bubble.bubbleImages.Find(a => {return a.name == "bubble_"+type.ToString()? a : null;});
+		}
+	}
+
+	void instantiateEditorBoosters ()
+	{
+		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
+		for(int i = 0; i < Enum.GetNames(typeof(Bubble.BoosterType)).Length;i++)
+		{
+			for(int j = 0; j < Enum.GetNames(typeof(FieldItem.Type)).Length;j++)
+			{
+				FieldItem.Type type = (FieldItem.Type) j;
+				Bubble.BoosterType boosterType = (Bubble.BoosterType) i;
+				Sprite sp = bubble.GetBoosterSpriteByType(type,boosterType);
+				if(sp == null) continue;
+				GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;
+				BubbleEditor bubEditor = obj.GetComponent<BubbleEditor>();
+				obj.GetComponent<BubbleInGameEditor>().enabled = false;
+				obj.transform.SetParent(bubbleList);
+				obj.transform.localScale = new Vector3(1f,1f,1f);
+				bubEditor.bubbleConfig.type = type;
+				bubEditor.bubbleConfig.boosterType = boosterType;
+				bubEditor.isMenu = true;
+				bubEditor.isBooster = true;
+				bubEditor.img.sprite = sp;
+			}
 		}
 	}
 

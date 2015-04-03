@@ -14,7 +14,7 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	public RectTransform rectTransform;
 	public BubbleEssence bubbleConfig = new BubbleEssence ();
 	public bool isMenu = false;
-
+	public bool isBooster = false;
 	void Awake () 
 	{
 		rectTransform = GetComponent<RectTransform> ();
@@ -23,7 +23,12 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	public void OnPointerClick (PointerEventData eventData)
 	{
 		if(isMenu)
-			MyEditor.instance.OnMenuBubbleClick (this);
+		{
+			if(isBooster)
+				MyEditor.instance.OnMenuBoosterClick (this);
+			else
+				MyEditor.instance.OnMenuBubbleClick (this);
+		}
 		else
 			MyEditor.instance.OnBubbleClick (this);
 
@@ -35,6 +40,13 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 		if(sprite == null)
 			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
+		rectTransform.sizeDelta = new Vector2 (size, size);
+	}
+	public void SetBoosterType(Bubble.Type tp,float size,Bubble.BoosterType bt, Sprite sp)
+	{
+		bubbleConfig.type = tp;
+		bubbleConfig.boosterType = bt;
+		img.sprite = sp;
 		rectTransform.sizeDelta = new Vector2 (size, size);
 	}
 

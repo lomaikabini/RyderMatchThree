@@ -11,6 +11,7 @@ public class LevelEditor
 	public int curentLvl = 1;
 	public CellEditor[,] cells;
 	public BubbleEditor[,] bubbles;
+	public BubbleEditor[,] boosters;
 	public ItemEditor[,] items;
 	public SeparatorEditor[,] separatorsHorizontal;
 	public SeparatorEditor[,] separatorsVertical;
@@ -24,6 +25,7 @@ public class LevelEditor
 	{
 		tableSize = TableSize;
 		bubbles = new BubbleEditor[TableSize, TableSize];
+		boosters = new BubbleEditor[TableSize, TableSize];
 		cells = new CellEditor[TableSize, TableSize];
 		separatorsHorizontal = new SeparatorEditor[TableSize, TableSize];
 		separatorsVertical = new SeparatorEditor[TableSize, TableSize];
@@ -38,6 +40,7 @@ public class LevelEditor
 		public List<CellEssence> cells = new List<CellEssence>();
 		public List<SeparatorEssence> separators = new List<SeparatorEssence> ();
 		public List<BubbleEssence> bubbles = new List<BubbleEssence> ();
+		public List<BubbleEssence> boosters = new List<BubbleEssence> ();
 		public List<ItemEssence> items = new List<ItemEssence> ();
 		public List<BubbleDamageEssence> bubblesDamages = new List<BubbleDamageEssence>();
 		public List<BubbleDamageEssence> boostersDamages = new List<BubbleDamageEssence>();
@@ -61,6 +64,8 @@ public class LevelEditor
 					bubbles.Add(conf.bubbles[i,j].bubbleConfig);
 				if(conf.items[i,j] != null)
 					items.Add(conf.items[i,j].itemConfig);
+				if(conf.boosters[i,j] != null)
+					boosters.Add(conf.boosters[i,j].bubbleConfig);
 			}
 			for(int i =0; i < conf.wizards.Count; i++)
 			{
