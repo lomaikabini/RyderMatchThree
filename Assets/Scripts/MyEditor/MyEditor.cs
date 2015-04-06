@@ -528,7 +528,7 @@ public class MyEditor : MonoBehaviour {
 	void instantiateEditorBubbles ()
 	{
 		Bubble bubble = bubblePrefab.GetComponent<Bubble> ();
-		for(int i = 0;i < Enum.GetNames(typeof(Bubble.Type)).Length-1;i++)
+		for(int i = 0;i < Enum.GetNames(typeof(Bubble.Type)).Length;i++)
 		{
 			Bubble.Type type = (Bubble.Type)i;
 			GameObject obj = Instantiate(bubbleEditorPrefab,Vector3.zero,Quaternion.identity) as GameObject;

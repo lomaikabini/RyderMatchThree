@@ -37,8 +37,8 @@ public class BubbleEditor : MonoBehaviour,IPointerClickHandler {
 	{
 		bubbleConfig.type = tp;
 		Sprite sprite = bubbleImages.Find(i => {return i.name == "bubble_"+bubbleConfig.type.ToString()? i : null;});
-		if(sprite == null)
-			Debug.LogError("Sprite didn't find!");
+//		if(sprite == null)
+//			Debug.LogError("Sprite didn't find!");
 		img.sprite = sprite;
 		rectTransform.sizeDelta = new Vector2 (size, size);
 	}

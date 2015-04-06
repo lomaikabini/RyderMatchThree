@@ -125,6 +125,10 @@ public class Game : MonoBehaviour {
 		LevelEditor.LevelEditorSerializable config = o.instance;
 		moves = config.moves;
 		UIManager.instance.SetMovesView (moves);
+
+		for (int i = 0; i < config.availableTypes.Count; i++)
+			availableTypes.Add (config.availableTypes [i]);
+
 		for(int i = 0; i < config.cells.Count; i++)
 		{
 			GameObject obj = Instantiate(cellPrefab,Vector3.zero, Quaternion.identity) as GameObject;
@@ -155,7 +159,10 @@ public class Game : MonoBehaviour {
 			bubble.posX = config.bubbles[i].posX;
 			bubble.posY = config.bubbles[i].posY;
 			bubbles[bubble.posX,bubble.posY] = bubble;
-			bubble.SetType(config.bubbles[i].type,bubbleSize,Bubble.BoosterType.none);
+			if(config.bubbles[i].type != FieldItem.Type.item)
+				bubble.SetType(config.bubbles[i].type,bubbleSize,Bubble.BoosterType.none);
+			else
+				bubble.SetType(availableTypes[UnityEngine.Random.Range(0,availableTypes.Count)],bubbleSize,Bubble.BoosterType.none);
 			insertBubbleInTable(bubble,false);
 			moveBubbles.Add(bubble);
 		}
@@ -182,8 +189,6 @@ public class Game : MonoBehaviour {
 			insertItemInTable(itm);
 			moveBubbles.Add(itm);
 		}
-		for (int i = 0; i < config.availableTypes.Count; i++)
-			availableTypes.Add (config.availableTypes [i]);
 
 		dropNewBalls ();
 
@@ -1334,9 +1339,9 @@ public class Game : MonoBehaviour {
 			float cof = 0;
 			while(cof < 1f)
 			{
-				speed +=Time.deltaTime * speedBoost;
+				speed +=Time.smoothDeltaTime * speedBoost;
 				speed = Mathf.Min(speed, speedMax);
-				cof += Time.deltaTime*speed/(float)steps;
+				cof += Time.smoothDeltaTime*speed/(float)steps;
 				cof = Mathf.Min(cof,1f);
 				bubble.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
 				yield return new WaitForEndOfFrame();
