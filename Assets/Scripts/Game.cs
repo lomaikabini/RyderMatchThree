@@ -740,6 +740,8 @@ public class Game : MonoBehaviour {
 		}
 		BoosterManager.instance.Clear ();
 		DragonManager.instance.Clear ();
+		WorldCameraManager.instance.Restart ();
+		WorldCameraManager.instance.Run (1);
 		goals.Clear ();
 		bubbleDamages.Clear ();
 		boosterDamages.Clear ();
@@ -1701,23 +1703,23 @@ public class Game : MonoBehaviour {
 			if(bubble == null) continue;
 			foundItm.Add(bubble);
 			//vertikalnie i gorizontalnie matchi
-			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
+			if(i-1 >= 0 && cells[i-1,j].cellType == Cell.Type.empty && bubbles[i-1,j] != null && bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
 			{
 				foundItm.Add(bubbles[i-1,j]);
 			}
-			if(j-1 >= 0 && bubbles[i,j-1] != null && bubbles[i,j-1].type == bubble.type && separatorsHorizontal[i,j] == null)
+			if(j-1 >= 0 && cells[i,j-1].cellType == Cell.Type.empty && bubbles[i,j-1] != null && bubbles[i,j-1].type == bubble.type && separatorsHorizontal[i,j] == null)
 			{
 				foundItm.Add(bubbles[i,j-1]);
 				if(foundItm.Count >=3)
 					goto exit;
 			}
-			if(j+1 < TableSize && bubbles[i,j+1] != null && bubbles[i,j+1].type == bubble.type && separatorsHorizontal[i,j+1] == null)
+			if(j+1 < TableSize && cells[i,j+1].cellType == Cell.Type.empty && bubbles[i,j+1] != null && bubbles[i,j+1].type == bubble.type && separatorsHorizontal[i,j+1] == null)
 			{
 				foundItm.Add(bubbles[i,j+1]);
 				if(foundItm.Count >=3)
 					goto exit;
 			}
-			if(i+1 < TableSize && bubbles[i+1,j] != null && bubbles[i+1,j].type == bubble.type && separatorsVertical[i,j] == null)
+			if(i+1 < TableSize && cells[i+1,j].cellType == Cell.Type.empty && bubbles[i+1,j] != null && bubbles[i+1,j].type == bubble.type && separatorsVertical[i,j] == null)
 			{
 				foundItm.Add(bubbles[i+1,j]);
 				if(foundItm.Count >=3)
@@ -1725,28 +1727,28 @@ public class Game : MonoBehaviour {
 			}
 			
 			//diagonalnie
-			if(i-1 >= 0 && j+1 < TableSize && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
+			if(i-1 >= 0 && j+1 < TableSize && cells[i-1,j+1].cellType == Cell.Type.empty && bubbles[i-1,j+1] != null && bubbles[i-1,j+1].type == bubble.type &&
 			   !((separatorsHorizontal[i-1,j+1] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j+1]!=null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
 			{
 				foundItm.Add(bubbles[i-1,j+1]);
 				if(foundItm.Count >=3)
 					goto exit;
 			}
-			if(i-1 >= 0 && j-1 >=0 && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
+			if(i-1 >= 0 && j-1 >=0 && cells[i-1,j-1].cellType == Cell.Type.empty && bubbles[i-1,j-1] != null && bubbles[i-1,j-1].type == bubble.type &&
 			   !((separatorsHorizontal[i-1,j] != null || cells[i-1,j].cellType != Cell.Type.empty || separatorsVertical[i-1,j] != null) && (separatorsVertical[i-1,j-1] != null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j-1] != null)))
 			{
 				foundItm.Add(bubbles[i-1,j-1]);
 				if(foundItm.Count >=3)
 					goto exit;
 			}
-			if(i+1 < TableSize && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
+			if(i+1 < TableSize && j-1 > 0 && cells[i+1,j-1].cellType == Cell.Type.empty && j-1 >= 0 && bubbles[i+1,j-1] != null && bubbles[i+1,j-1].type == bubble.type &&
 			   !((separatorsHorizontal[i+1,j] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j-1]!= null || cells[i,j-1].cellType != Cell.Type.empty || separatorsHorizontal[i,j] != null)))
 			{
 				foundItm.Add(bubbles[i+1,j-1]);
 				if(foundItm.Count >=3)
 					goto exit;
 			}
-			if(i+1 < TableSize && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
+			if(i+1 < TableSize && j+1< TableSize && cells[i+1,j+1].cellType == Cell.Type.empty && j+1 < TableSize && bubbles[i+1,j+1] != null && bubbles[i+1,j+1].type == bubble.type &&
 			   !((separatorsHorizontal[i+1,j+1] != null || cells[i+1,j].cellType != Cell.Type.empty || separatorsVertical[i,j] != null) && (separatorsVertical[i,j+1] != null || cells[i,j+1].cellType != Cell.Type.empty || separatorsHorizontal[i,j+1] != null)))
 			{
 				foundItm.Add(bubbles[i+1,j+1]);

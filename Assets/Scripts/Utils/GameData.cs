@@ -9,8 +9,8 @@ public class GameData{
 	
 	private static GameData instance;
 	public int currentLvl;
-	
-	private string versionId = "save_000";
+	public int unlockLvls;
+	private string versionId = "save_002";
 	public static GameData Get()
 	{
 		if (instance == null)
@@ -48,6 +48,7 @@ public class GameData{
 	void reset ()
 	{
 		currentLvl = 1;
+		unlockLvls = 10;
 	}
 	
 	public void save ()

@@ -41,6 +41,12 @@ public class WorldCameraManager : MonoBehaviour {
 		}
 	}
 
+	public void Restart()
+	{
+		pathPart = 0;
+		worldCamera.transform.position = path[0][0];
+	}
+
 	public void Run (int count)
 	{
 		if (count <= 0)
