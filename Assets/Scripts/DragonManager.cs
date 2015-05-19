@@ -8,6 +8,7 @@ public class DragonManager : MonoBehaviour {
 	public List<Dragon> dragons;
 	public GameObject bubblePrefab;
 	public GameObject boosterPrefab;
+	public Transform overlapContainer;
 	public static DragonManager instance;
 	private int movingCount = 0;
 	private int movingBoosters = 0;
@@ -46,11 +47,20 @@ public class DragonManager : MonoBehaviour {
 	public void GetDragonItems(List<FieldItem> list,List<FieldItem> boosterList,Vector2 boosterPos,List<Vector2> allBoosterPos)
 	{
 		//TODO: vozmojno tyt naod bydet ydalyat' dyblikati s boosterlist
+
 		matchBubbles = new List<FieldItem.Type>();
 		for (int i=0; i < list.Count; i++)
+		{
 			matchBubbles.Add (list [i].type);
+			list[i].transform.SetParent(overlapContainer);
+		}
 
-		movingCount = list.Count;
+		for (int i=0; i < boosterList.Count; i++)
+		{
+			boosterList[i].transform.SetParent(overlapContainer);
+		}
+			
+			movingCount = list.Count;
 		this.boosterList = boosterList;
 		this.boosterPos = boosterPos;
 		this.allBoosterPos =new List<Vector2>(allBoosterPos);
@@ -84,6 +94,7 @@ public class DragonManager : MonoBehaviour {
 						}
 						if(itm != null)
 						{
+							itm.SetChosed();
 							StartCoroutine(ScaleUpObj(itm));
 							boosterList.Remove(itm);
 							matchBubbles.Add(itm.type);

@@ -21,6 +21,8 @@ public class Game : MonoBehaviour {
 	public GameObject cellPrefab;
 	public GameObject separatorPrefab;
 	public GameObject substratePrefab;
+	public GameObject separatorParticlesPrefab;
+	public GameObject separatorParticlesDamagePrefab;
 
 	public RectTransform BubbleContainer;
 	public RectTransform CellsContainer;
@@ -112,7 +114,7 @@ public class Game : MonoBehaviour {
 		BubblePool.Get ().Initialize (TableSize);
 		JointsPool.Get ().Initialize (TableSize);
 		calculateBubblesValues ();
-		fillEnvironment ();
+		fillEnvironment ();																								
 		fillTableSubstrates ();
 		StartCoroutine(buildLevelFromFile ());
 	}
@@ -307,7 +309,8 @@ public class Game : MonoBehaviour {
 	}
 	void showWizardDamage ()
 	{
-		WizardManager.instance.ShowCurrentWizardDamage (calculateDamage());
+		float factor = FactorView.instance.SetView (matchBubbles.Count);
+		WizardManager.instance.ShowCurrentWizardDamage ((int) ((float)calculateDamage() * factor));
 	}
 
 	int calculateDamage()
@@ -1000,17 +1003,38 @@ public class Game : MonoBehaviour {
 			usedSeparators.Add(separ);
 			if(separ.GiveDamage(damage))
 			{
+				Vector3 p;
 				if(type == Separator.Type.vertical)
 				{
+					p = separatorsVertical[x,y].transform.position;
 					Destroy(separatorsVertical[x,y].gameObject);
 					separatorsVertical[x,y] = null;
 				}
 				else
 				{
+					p = separatorsHorizontal[x,y].transform.position;
 					Destroy(separatorsHorizontal[x,y].gameObject);
 					separatorsHorizontal[x,y] = null;
 				}
+				GameObject  obj = Instantiate(separatorParticlesPrefab,p,Quaternion.identity) as GameObject;
+				obj.GetComponent<ParticleSystem>().Emit(15);
+				StartCoroutine(removeObj(obj,1f));
 			}
+			else if(separ.kit.destroyType == Separator.DestroyType.destroy)
+			{
+				Vector3 p;
+				if(type == Separator.Type.vertical)
+				{
+					p = separatorsVertical[x,y].transform.position;
+				}
+				else
+				{
+					p = separatorsHorizontal[x,y].transform.position;
+				}
+				GameObject  obj = Instantiate(separatorParticlesDamagePrefab,p,Quaternion.identity) as GameObject;
+				obj.GetComponent<ParticleSystem>().Emit(15);
+				StartCoroutine(removeObj(obj,1f));
+             }
 			return true;
 		}
 		return false;
@@ -1028,17 +1052,45 @@ public class Game : MonoBehaviour {
 			return;
 		if(separ.GiveDamage(damage))
 		{
+			Vector3 p;
 			if(type == Separator.Type.vertical)
 			{
+				p = separatorsVertical[x,y].transform.position;
 				Destroy(separatorsVertical[x,y].gameObject);
 				separatorsVertical[x,y] = null;
 			}
 			else
 			{
+				p = separatorsHorizontal[x,y].transform.position;
 				Destroy(separatorsHorizontal[x,y].gameObject);
 				separatorsHorizontal[x,y] = null;
 			}
+			GameObject  obj = Instantiate(separatorParticlesPrefab,p,Quaternion.identity) as GameObject;
+			obj.GetComponent<ParticleSystem>().Emit(15);
+			StartCoroutine(removeObj(obj,1f));
 		}
+		else if(separ.kit.destroyType == Separator.DestroyType.destroy)
+		{
+			Vector3 p;
+			if(type == Separator.Type.vertical)
+			{
+				p = separatorsVertical[x,y].transform.position;
+			}
+			else
+			{
+				p = separatorsHorizontal[x,y].transform.position;
+			}
+			GameObject  obj = Instantiate(separatorParticlesDamagePrefab,p,Quaternion.identity) as GameObject;
+			obj.GetComponent<ParticleSystem>().Emit(15);
+			StartCoroutine(removeObj(obj,1f));
+		}
+	}
+	
+	IEnumerator removeObj(GameObject obj, float t)
+	{
+		yield return new WaitForSeconds (t);
+		Destroy (obj);
+		yield return null;
 	}
 
 	void explositionNearBlocks(List<FieldItem> list,List<KeyValuePair<Vector2,Vector2>> blockedCells)
@@ -1815,6 +1867,7 @@ public class Game : MonoBehaviour {
 	public void ReleaseGame()
 	{
 		UIManager.instance.SetMovesView (moves);
+		FactorView.instance.HideView ();
 		if (checkGoalDone()) {
 			gameDone();
 			//return;

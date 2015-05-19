@@ -36,8 +36,10 @@ public class Separator : MonoBehaviour {
 
 	[HideInInspector]
 	public RectTransform rectTransform;
+	[HideInInspector]
+	public Sprites kit;
+
 	Image img;
-	Sprites kit;
 
 	void Awake () 
 	{

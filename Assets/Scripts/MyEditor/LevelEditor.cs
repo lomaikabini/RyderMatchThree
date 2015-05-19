@@ -90,8 +90,8 @@ public class LevelEditor
 		}
 		public IEnumerator loadDataLvl(int id)
 		{
-			string fileName = (Application.streamingAssetsPath + "/Level " + id.ToString () + ".txt");;
-			if(Application.platform == RuntimePlatform.Android)
+			string fileName = (Application.streamingAssetsPath + "/Level " + id.ToString () + ".txt");
+			if(Application.platform == RuntimePlatform.IPhonePlayer)
 			{
 				WWW dataFile = new WWW(fileName);
 				yield return dataFile;
@@ -115,7 +115,7 @@ public class LevelEditor
 					yield return null;
 				}
 			}
-			else if(Application.platform == RuntimePlatform.WindowsEditor)
+			else if(Application.platform == RuntimePlatform.OSXEditor)
 			{
 				if (File.Exists (fileName))
 				{
