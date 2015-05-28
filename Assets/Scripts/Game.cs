@@ -1320,56 +1320,8 @@ public class Game : MonoBehaviour {
 		{
 			float posX;
 			float posY;
-			if(i==1)
-			{
-				posX = size - 0.5f;
-				posY = size + 0.5f;
-			}
-			else if(i == 2)
-			{
-				posX = size;
-				posY = size+0.5f;
-			}
-			else if(i == 3)
-			{
-				posX = size +0.5f;
-				posY = size +0.5f;
-			}
-			else if(i == 4)
-			{
-				posX = size - 1f;
-				posY = size;
-			}
-			else if(i == 5)
-			{
-				posX = size;
-				posY = size;
-			}
-			else if(i == 6)
-			{
-				posX = size + 1f;
-				posY = size;
-			}
-			else if(i == 7)
-			{
-				posX = size  - 0.5f;
-				posY = size - 0.5f;
-			}
-			else if(i == 8)
-			{
-				posX = size;
-				posY = size -1f;
-			}
-			else if(i==9)
-			{
-				posX = size + 1f;
-				posY = size - 1f;
-			}
-			else
-			{
-				posX = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
-				posY = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
-			}
+			posX = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
+			posY = UnityEngine.Random.Range((size-0.5f)*100f,(size+0.5f)*100f)/100f;
 			moveBubbles[i-1].whereMove.Add(new KeyValuePair<float, Vector2>(2f,new Vector2(posX,posY)));
 			moveBubbles[i-1].whereMove.Add(new KeyValuePair<float, Vector2>(2f,new Vector2((float)moveBubbles[i-1].posX,(float)moveBubbles[i-1].posY)));
 		}
@@ -2093,5 +2045,9 @@ public class Game : MonoBehaviour {
 		bubbleSize = (BubbleContainer.rect.height - ((TableSize + 1) * BubblePadding)) / (float)TableSize;
 		bubblesOffset = (BubbleContainer.rect.height/2f) - bubbleSize/2f - BubblePadding;
 		slipStep = Mathf.Sqrt ((bubbleSize * bubbleSize) * 2f) / bubbleSize;
+	}
+	public void LoadEditor()
+	{
+		GoTo.LoadEditor ();
 	}
 }

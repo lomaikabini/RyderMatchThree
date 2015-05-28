@@ -7,5 +7,10 @@ public class GoTo{
 	{
 		Application.LoadLevel("Game");
 	}
+
+	public static void LoadEditor()
+	{
+		Application.LoadLevel("editor");
+	}
 }
 

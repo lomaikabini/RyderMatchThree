@@ -90,51 +90,42 @@ public class LevelEditor
 		}
 		public IEnumerator loadDataLvl(int id)
 		{
-			string fileName = (Application.streamingAssetsPath + "/Level " + id.ToString () + ".txt");
-			if(Application.platform == RuntimePlatform.IPhonePlayer)
-			{
-				WWW dataFile = new WWW(fileName);
-				yield return dataFile;
-				if (string.IsNullOrEmpty(dataFile.error))
-				{
-					string s = dataFile.text;//File.ReadAllText(fileName);
-					//LevelEditorSerializable data = this;
-					try
-					{
-						instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
-					}
-					catch (System.Exception e)
-					{
-						Debug.Log(e);
-					}
-					yield return instance;
-				}
-				else
-				{
-					Debug.LogError("Level didn't find on path: "+fileName);
+			var fileName = Resources.Load ("Level " + id.ToString ());//(Application.streamingAssetsPath + "/Level" + id.ToString () + ".txt");
+			string s;
+			if (Application.platform == RuntimePlatform.OSXPlayer) {
+				s = PlayerPrefs.GetString("Level " + id.ToString (),null);
+			} else {
+				if (fileName == null) {
+					Debug.LogError ("Level didn't load");
 					yield return null;
+					yield break;
 				}
+				s = fileName.ToString ();
+			}
+
+			if(Application.platform == RuntimePlatform.IPhonePlayer || Application.platform == RuntimePlatform.OSXPlayer)
+			{
+				try
+				{
+					instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
+				}
+				catch (System.Exception e)
+				{
+					Debug.Log(e);
+				}
+				yield return instance;
 			}
 			else if(Application.platform == RuntimePlatform.OSXEditor)
 			{
-				if (File.Exists (fileName))
+				try
 				{
-					string s = File.ReadAllText(fileName);
-					try
-					{
-						instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
-					}
-					catch (System.Exception e)
-					{
-						Debug.Log(e);
-					}
-					yield return instance;
-					}
-				else
-				{
-					Debug.LogError("Level didn't find on path: "+fileName);
-				 yield	return null;
+					instance = JsonMapper.ToObject<LevelEditorSerializable>(s);
 				}
+				catch (System.Exception e)
+				{
+					Debug.Log(e);
+				}
+				yield return instance;
 			}
 		}
 	}
@@ -142,9 +133,16 @@ public class LevelEditor
 	public void Save(bool rewrite = false)
 	{
 		string fileName = "";
-		fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/StreamingAssets/" ,"Level " ,curentLvl.ToString(),".txt");
+		if(Application.platform == RuntimePlatform.OSXPlayer)
+			fileName = String.Concat(Directory.GetCurrentDirectory(), "Level " ,curentLvl.ToString(),".txt");
+		else 
+			fileName =String.Concat(Directory.GetCurrentDirectory(), "/Assets/Resources/" ,"Level " ,curentLvl.ToString(),".txt");
 		if (!CheckFile (fileName) || rewrite)
+		{
 			WriteToFile (JsonMapper.ToJson (new LevelEditorSerializable (this)), fileName);
+			if(Application.platform == RuntimePlatform.OSXPlayer)
+				PlayerPrefs.SetString(String.Concat("Level " ,curentLvl.ToString()),JsonMapper.ToJson (new LevelEditorSerializable (this)));
+		}
 		else
 		{
 			MyEditor.instance.OnTrySaveExistLvl();
