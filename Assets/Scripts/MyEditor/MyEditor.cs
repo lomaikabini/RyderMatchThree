@@ -593,6 +593,16 @@ public class MyEditor : MonoBehaviour {
 		bEditor.isGoal = true;
 		bEditor.img.sprite = itm.spritesIdle.Find(i => {return i.name == "item_"+Item.ItemType.gold.ToString()? i : null;});
 
+
+		o = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
+		bEditor = o.GetComponent<BubbleEditorDamage>();
+		o.transform.SetParent(goalContainer);
+		o.transform.localScale = new Vector3(1f,1f,1f);
+		bEditor.type = FieldItem.Type.item;
+		bEditor.itemType = Item.ItemType.bomb;
+		bEditor.isGoal = true;
+		bEditor.img.sprite = itm.spritesIdle.Find(i => {return i.name == "item_"+Item.ItemType.bomb.ToString()? i : null;});
+		
 		Cell cell = cellPrefab.GetComponent<Cell> ();
 		GameObject ob = Instantiate(bubbleDamagePrefab,Vector3.zero,Quaternion.identity) as GameObject;
 		BubbleEditorDamage baEditor = ob.GetComponent<BubbleEditorDamage>();

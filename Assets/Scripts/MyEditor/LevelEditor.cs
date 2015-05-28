@@ -96,7 +96,7 @@ public class LevelEditor
 				s = PlayerPrefs.GetString("Level " + id.ToString (),null);
 			} else {
 				if (fileName == null) {
-					Debug.LogError ("Level didn't load");
+					Debug.LogError ("Level didn't load ppc");
 					yield return null;
 					yield break;
 				}
