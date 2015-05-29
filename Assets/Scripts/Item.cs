@@ -17,7 +17,8 @@ public class Item : FieldItem {
 		crystal,
 		gold,
 		bomb,
-		tooth
+		tooth,
+		jumper
 	}
 	public override void SetItemScript()
 	{

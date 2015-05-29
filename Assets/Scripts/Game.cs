@@ -32,7 +32,6 @@ public class Game : MonoBehaviour {
 	public Text scoresView;
 	public Animator curtainAnimator;
 	public Animator tableAnimator;
-
 	[HideInInspector]
 	public GameState gameState;
 	public enum GameState
@@ -1704,7 +1703,7 @@ public class Game : MonoBehaviour {
 			for(int j =0; j < TableSize; j++)
 		{
 			FieldItem bubble = bubbles[i,j];
-			if(bubble == null) continue;
+			if(bubble == null || bubbles[i,j].type == FieldItem.Type.item) continue;
 			foundItm.Add(bubble);
 			//vertikalnie i gorizontalnie matchi
 			if(i-1 >= 0 && cells[i-1,j].cellType == Cell.Type.empty && bubbles[i-1,j] != null && bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
@@ -1775,6 +1774,72 @@ public class Game : MonoBehaviour {
 		foundItm [2].playChosedAnim ();
 		yield return null;
 	}
+
+	public void PlayJumpers(List<FieldItem> newJumpers = null)
+	{
+		List<FieldItem> jumpers = new List<FieldItem> ();
+
+		for(int i =0; i < TableSize;i++)
+			for(int j =0; j < TableSize; j++)
+		{
+			if(newJumpers != null && newJumpers.Exists(o => o.posX == i && o.posY == j ))
+				continue;
+			FieldItem b = bubbles[i,j];
+			if(b != null && b.type == FieldItem.Type.item && b.itemScript.itemType == Item.ItemType.jumper)
+				jumpers.Add(b);
+		}
+
+		if (jumpers.Count == 0)
+			checkPossibleMatch ();
+		else
+		{
+			StartCoroutine(jumpJumpers(new List<FieldItem>(jumpers)));
+		}
+	}
+
+	IEnumerator jumpJumpers(List<FieldItem> objs)
+	{
+		yield return new WaitForEndOfFrame ();
+		List<FieldItem> targets = new List<FieldItem> ();
+		List<Vector3> startPositions = new List<Vector3> ();
+		for(int i = 0; i < objs.Count; i++)
+		{
+			objs[i].transform.SetSiblingIndex(100);
+			startPositions.Add(objs[i].transform.position);
+			targets.Add(FindConvertBubble(targets.ToArray()));
+		}
+		Vector3 startScale = new Vector3 (1f, 1f, 1f);
+		Vector3 endScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		float cof = 0;
+		while(cof < 1f)
+		{
+			cof += Time.deltaTime*2f;
+			cof = Mathf.Min(1f,cof);
+			for(int i = 0; i < objs.Count; i++)
+			{
+				if(targets[i] != null)
+				{
+					objs[i].transform.position = Vector3.Lerp(startPositions[i],targets[i].transform.position,cof);
+					float scalecof = cof;
+					if(cof > 0.5f)
+					{
+						scalecof = 1f - cof;
+					}
+					objs[i].transform.localScale = Vector3.Lerp(startScale,endScale,scalecof);
+				}
+			}
+			yield return new WaitForEndOfFrame();
+		}
+		for(int i = 0; i < targets.Count;i++)
+		{
+			bubbles[objs[i].posX, objs[i].posY] = null;
+			BubblePool.Get().Push(objs[i].gameObject);
+			SetDropedItem(targets[i].posX,targets[i].posY,Item.ItemType.jumper);
+		}
+		dropBalls ();
+		yield return null;
+	}
+
 	public void checkPossibleMatch()
 	{
 		for(int i =0; i < TableSize;i++)
@@ -1782,7 +1847,7 @@ public class Game : MonoBehaviour {
 		{
 			int equals = 0;
 			FieldItem bubble = bubbles[i,j];
-			if(bubble == null) continue;
+			if(bubble == null || bubbles[i,j].type == FieldItem.Type.item) continue;
 			//vertikalnie i gorizontalnie matchi
 			if(i-1 >= 0 && bubbles[i-1,j] != null &&bubbles[i-1,j].type == bubble.type && separatorsVertical[i-1,j] == null)
 				equals++;
@@ -1831,15 +1896,32 @@ public class Game : MonoBehaviour {
 		gameState = GameState.free;
 	}
 
-	public FieldItem FindConvertBubble ()
+	public FieldItem FindConvertBubble (FieldItem[] except = null)
 	{
 		List<FieldItem> actualPositions = new List<FieldItem> ();
 		for(int i = 0; i < TableSize; i++)
 			for(int j = 0; j < TableSize; j++)
 		{
+			bool isCont = false;
+			if(except != null && bubbles[i,j] != null)
+			{
+				for(int k = 0; k < except.Length; k++)
+				{
+					if(except[k] == bubbles[i,j])
+					{
+						isCont = true;
+						break;
+					}
+				}
+			}
+			if(isCont) continue;
 			if(bubbles[i,j] != null && bubbles[i,j].type != FieldItem.Type.item && cells[i,j].cellType == Cell.Type.empty)
 				actualPositions.Add(bubbles[i,j]);
 		}
+
+		if (actualPositions.Count == 0)
+			return null;
+
 		return actualPositions [Mathf.RoundToInt (UnityEngine.Random.Range (0, actualPositions.Count))];
 	}
 	public void SetSlime(int x, int y)
@@ -1847,10 +1929,10 @@ public class Game : MonoBehaviour {
 		cells [x, y].SetType (Cell.Type.spot);
 	}
 
-	public void SetTooth(int x, int y)
+	public void SetDropedItem(int x, int y, Item.ItemType t)
 	{
 		bubbles [x, y] = bubbles [x, y].GetComponent<Item> ();
-		bubbles [x, y].itemScript.itemType = Item.ItemType.tooth;
+		bubbles [x, y].itemScript.itemType = t;
 		bubbles [x, y].posX = x;
 		bubbles [x, y].posY = y;
 		bubbles [x, y].SetType (FieldItem.Type.item, bubbleSize, Bubble.BoosterType.none);

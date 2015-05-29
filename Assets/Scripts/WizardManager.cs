@@ -96,28 +96,94 @@ public class WizardManager : MonoBehaviour {
 				drop = true;
 				StartCoroutine (dropSlime (Game.instance.FindConvertBubble (), dropPoint.position/*w.transform.position*/));
 			}
-			if(w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
+			else if(w.config.toothPeriod !=0 && step % w.config.toothPeriod == 0)
 			{
 				drop = true;
-				StartCoroutine (dropTooth (Game.instance.FindConvertBubble (), dropPoint.position));
+				StartCoroutine (dropItem (Game.instance.FindConvertBubble (), dropPoint.position, Item.ItemType.tooth));
+			}
+			else if(w.config.jumpPeriond !=0 && step % w.config.jumpPeriond == 0)
+			{
+				drop = true;
+				FieldItem itm1 = Game.instance.FindConvertBubble ();
+				FieldItem itm2 = Game.instance.FindConvertBubble (new FieldItem[]{itm1});
+				StartCoroutine (dropJumpers(new FieldItem[]{itm1,itm2}, new Vector3[]{dropPoint.position,dropPoint.position}));
 			}
 			if(!drop)
-				Game.instance.checkPossibleMatch();
+				Game.instance.PlayJumpers();
 		}
 		else
-			Game.instance.checkPossibleMatch();
+			Game.instance.PlayJumpers();
 
 	}
 
+	IEnumerator dropJumpers(FieldItem[] b, Vector3[] startPos)
+	{
+		yield return new WaitForEndOfFrame ();
+		Item.ItemType t = Item.ItemType.jumper;
+		GameObject obj = Instantiate (dropItemPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+		obj.transform.SetParent (canvas);
+		obj.transform.localScale = new Vector3 (1f, 1f, 1f);
+		obj.transform.position = startPos[0];
+		obj.GetComponent<Image> ().sprite = bubblePrefab.GetComponent<Item> ().FindSpriteByType (t);
+		obj.GetComponent<RectTransform> ().sizeDelta = new Vector2 (Game.instance.bubbleSize, Game.instance.bubbleSize);
 
-	IEnumerator dropTooth(FieldItem b,Vector3 startPos)
+		GameObject obj1 = Instantiate (dropItemPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+		obj1.transform.SetParent (canvas);
+		obj1.transform.localScale = new Vector3 (1f, 1f, 1f);
+		obj1.transform.position = startPos[1];
+		obj1.GetComponent<Image> ().sprite = bubblePrefab.GetComponent<Item> ().FindSpriteByType (t);
+		obj1.GetComponent<RectTransform> ().sizeDelta = new Vector2 (Game.instance.bubbleSize, Game.instance.bubbleSize);
+
+		Vector3 startScale = new Vector3 (1f, 1f, 1f);
+		Vector3 endScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		Vector3 endPos = startPos[0] + new Vector3 (0.5f, 0.5f, 0f);
+		float cof = 0;
+		while(cof < 1f)
+		{
+			cof +=Time.deltaTime*5f;
+			cof = Mathf.Min(1f,cof);
+			obj.transform.position = Vector3.Lerp(startPos[0],endPos,cof);
+			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			obj1.transform.position = Vector3.Lerp(startPos[1],endPos,cof);
+			obj1.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			yield return new WaitForEndOfFrame();
+		}
+		startScale = new Vector3 (1.5f, 1.5f, 1.5f);
+		endScale = new Vector3 (1f, 1f, 1f);
+		startPos[0] = obj.transform.position;
+		endPos = b[0].transform.position;
+		startPos[1] = obj1.transform.position;
+		Vector3 endPos1 = b[1].transform.position;
+		cof = 0f;
+		while(cof < 1f)
+		{
+			cof +=Time.deltaTime*5f;
+			cof = Mathf.Min(1f,cof);
+			obj.transform.position = Vector3.Lerp(startPos[0],endPos,cof);
+			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			obj1.transform.position = Vector3.Lerp(startPos[1],endPos1,cof);
+			obj1.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
+			yield return new WaitForEndOfFrame();
+		}
+		Game.instance.SetDropedItem (b[0].posX, b[0].posY, t);
+		Game.instance.SetDropedItem (b[1].posX, b[1].posY, t);
+		Destroy (obj);
+		Destroy (obj1);
+		Game.instance.PlayJumpers(new List<FieldItem>(){b[0],b[1]});
+		//Game.instance.jumpers.Add (b [0]);
+		//Game.instance.jumpers.Add (b [1]);
+		yield return null;
+	}
+
+
+	IEnumerator dropItem(FieldItem b,Vector3 startPos, Item.ItemType t)
 	{
 		yield return new WaitForEndOfFrame ();
 		GameObject obj = Instantiate (dropItemPrefab, Vector3.zero, Quaternion.identity) as GameObject;
 		obj.transform.SetParent (canvas);
 		obj.transform.localScale = new Vector3 (1f, 1f, 1f);
 		obj.transform.position = startPos;
-		obj.GetComponent<Image> ().sprite = bubblePrefab.GetComponent<Item> ().FindSpriteByType (Item.ItemType.tooth);
+		obj.GetComponent<Image> ().sprite = bubblePrefab.GetComponent<Item> ().FindSpriteByType (t);
 		obj.GetComponent<RectTransform> ().sizeDelta = new Vector2 (Game.instance.bubbleSize, Game.instance.bubbleSize);
 		Vector3 startScale = new Vector3 (1f, 1f, 1f);
 		Vector3 endScale = new Vector3 (1.5f, 1.5f, 1.5f);
@@ -144,9 +210,9 @@ public class WizardManager : MonoBehaviour {
 			obj.transform.localScale = Vector3.Lerp(startScale,endScale,cof);
 			yield return new WaitForEndOfFrame();
 		}
-		Game.instance.SetTooth (b.posX, b.posY);
+		Game.instance.SetDropedItem (b.posX, b.posY, t);
 		Destroy (obj);
-		Game.instance.checkPossibleMatch();
+		Game.instance.PlayJumpers();
 		yield return null;
 		
 	}
@@ -187,7 +253,7 @@ public class WizardManager : MonoBehaviour {
 		}
 		Game.instance.SetSlime (b.posX, b.posY);
 		Destroy (obj);
-		Game.instance.checkPossibleMatch();
+		Game.instance.PlayJumpers ();
 		yield return null;
 
 	}

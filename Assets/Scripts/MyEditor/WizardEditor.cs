@@ -8,6 +8,7 @@ public class WizardEditor : MonoBehaviour {
 	public InputField healthField;
 	public InputField slimeField;
 	public InputField toothField;
+	public InputField jumperField;
 	public Text nameTx;
 	public WizardEssence wizardConfig = new WizardEssence();
 	public List<Toggle> toggleGroup;
@@ -25,6 +26,18 @@ public class WizardEditor : MonoBehaviour {
 		InputField.SubmitEvent submitEvent3 = new InputField.SubmitEvent();
 		submitEvent3.AddListener(submitToothPeriod);
 		toothField.onEndEdit = submitEvent3;
+
+		InputField.SubmitEvent submitEvent4 = new InputField.SubmitEvent ();
+		submitEvent4.AddListener (submitJumperPeriod);
+		jumperField.onEndEdit = submitEvent4;
+	}
+
+	void submitJumperPeriod (string arg)
+	{
+		if (!arg.Equals (""))
+			wizardConfig.jumpPeriond = int.Parse (arg);
+		else
+			wizardConfig.jumpPeriond = 0;
 	}
 
 	void submitToothPeriod (string arg)
@@ -53,7 +66,7 @@ public class WizardEditor : MonoBehaviour {
 	public void SetName(int number)
 	{
 		wizardConfig.id = number;
-		nameTx.text = "Wizard " + wizardConfig.id.ToString ();
+		nameTx.text = wizardConfig.id.ToString ();
 	}
 
 	public void OnToggleChange()
