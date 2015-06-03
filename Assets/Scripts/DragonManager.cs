@@ -132,12 +132,21 @@ public class DragonManager : MonoBehaviour {
 		Vector3 startPos = t.transform.localPosition;
 		Vector3 endPos = t.transform.localPosition + new Vector3 (0f, -50f, 0f);
 		t.transform.SetSiblingIndex (999);
+		bool toDragon = true;
 		while(cof < 1f)
 		{
 			cof +=Time.deltaTime*6f;
 			cof = Mathf.Min(cof,1f);
 			t.transform.localScale = Vector3.Lerp(startScale,targetScale,cof);
 			t.transform.localPosition = Vector3.Lerp(startPos,endPos,cof);
+
+			if(cof > 0.7f && toDragon)
+			{
+				toDragon = false;
+				if (t.type != FieldItem.Type.item)
+					StartCoroutine (GoToDragon (t));
+			}
+
 			yield return new WaitForEndOfFrame();
 		}
 		if (t.type != FieldItem.Type.item)

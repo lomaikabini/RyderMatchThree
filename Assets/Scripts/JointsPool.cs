@@ -44,6 +44,7 @@ public class JointsPool : MonoBehaviour {
 			obj.transform.localScale = new Vector3(1f,1f,1f);
 			pool.Add(obj.GetComponent<ParallaxJoint>());
 		}
+		gameObject.SetActive (false);
 	}
 	
 	public ParallaxJoint Pull()

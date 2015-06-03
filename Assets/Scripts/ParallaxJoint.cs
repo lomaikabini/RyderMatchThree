@@ -22,7 +22,6 @@ public class ParallaxJoint : MonoBehaviour {
 	bool isRun = false;
 	void Start()
 	{
-		rectTransform = GetComponent<RectTransform> ();
 		posA = rectA.localPosition;
 		posB = rectB.localPosition;
 		endPosX = -(rectA.rect.width+rectA.localPosition.x);
@@ -75,6 +74,8 @@ public class ParallaxJoint : MonoBehaviour {
 			angle = 45f;
 		else if (a.posX < b.posX && a.posY > b.posY)
 			angle = 135f;
+		if(rectTransform == null)
+			rectTransform = GetComponent<RectTransform> ();
 		rectTransform.localRotation = Quaternion.Euler (new Vector3 (0f, 0f, angle));
 		rectTransform.localPosition =Vector3.Lerp(a.rectTransform.localPosition,b.rectTransform.localPosition, 0.5f);
 	}
